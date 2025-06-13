@@ -2,16 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Leap;
+using System.IO;
+using System.Text.Json;
 
 public class ButtonResponse : MonoBehaviour
 {
     Leap.Controller player;
-
-
+    public GameObject indicator;
     // Start is called before the first frame update
     void Start()
     {
+        Material m = indicator.GetComponent<MeshRenderer>().material;
         player = new Leap.Controller();
+        m.color = Color.red;
     }
 
     public void ButtonPress()
