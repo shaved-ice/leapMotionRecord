@@ -13,10 +13,14 @@ public class ButtonResponse : MonoBehaviour
     public Color waitColour = new Color(0.6f, 0.6f, 0.6f);
     public Color recColour = Color.red;
     public int secondsBeforeRecording = 5; //time before program starts recording
-    public int secondsToRecord = 5; 
+    public int secondsToRecord = 5;
     private bool recTime = false;
     private bool first = false;
+    private bool saveFlag = false;
+    private float saveTime;
     private Material m;
+    private List<Frame> frameList = new List<Frame>();
+    private Frame lastf;
     // Start is called before the first frame update
     void Start()
     {
@@ -27,9 +31,11 @@ public class ButtonResponse : MonoBehaviour
 
     public void ButtonPress()
     {
-        Frame f = player.Frame();
-        m.color = waitColour;
-        Invoke("delayCall", secondsBeforeRecording);
+        if (!recTime && !saveFlag)
+        {
+            m.color = waitColour;
+            Invoke("delayCall", secondsBeforeRecording);
+        }
         //for (int i = 0; i < f.Hands.Count; i++) //loop through every hand in the frame
         //{
         //    for (int j = 0; j < f.Hands[i].fingers.Length; j++) //in the hand, go through every finger
@@ -48,18 +54,41 @@ public class ButtonResponse : MonoBehaviour
 
     private void delayCall()
     {
-        recTime = true; 
+        recTime = true;
     }
 
     void Update()
     {
         if (recTime && !first)
         {
+            frameList.Add(player.Frame());
+            lastf = player.Frame();
+            saveTime = Time.time;
+            //Debug.Log(Time.time);
             m.color = recColour;
+            first = true;
         }
         else if (recTime)
         {
-
+            if (Time.time > saveTime + secondsToRecord)
+            {
+                Debug.Log(Time.time);
+                for (int i = 0; i < frameList.Count; i++) //prints every frame in our frameList
+                {
+                    Debug.Log(frameList[i]);
+                }
+                first = false;
+                recTime = false;
+                m.color = readyColour;
+            }
+            else
+            {
+                if (!(player.Frame().Equals(lastf)))
+                {
+                    frameList.Add(player.Frame());
+                }
+                lastf = player.Frame();
+            }
         }
     }
 }
