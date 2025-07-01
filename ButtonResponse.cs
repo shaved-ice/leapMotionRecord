@@ -14,6 +14,8 @@ public class ButtonResponse : MonoBehaviour
     public Color recColour = Color.red;
     public int secondsBeforeRecording = 5; //time before program starts recording
     public int secondsToRecord = 5;
+    public string filePath;
+    public string fileName;
     private bool recTime = false;
     private bool first = false;
     private bool saveFlag = false;
@@ -72,14 +74,16 @@ public class ButtonResponse : MonoBehaviour
         {
             if (Time.time > saveTime + secondsToRecord)
             {
-                Debug.Log(Time.time);
-                for (int i = 0; i < frameList.Count; i++) //prints every frame in our frameList
-                {
-                    Debug.Log(frameList[i]);
-                }
+                //Debug.Log(Time.time);
+                //for (int i = 0; i < frameList.Count; i++) //prints every frame in our frameList
+                //{
+                //    Debug.Log(frameList[i]);
+                //}
                 first = false;
                 recTime = false;
-                m.color = readyColour;
+                saveFlag = true;
+                m.color = waitColour;
+                saveRec();
             }
             else
             {
@@ -90,5 +94,39 @@ public class ButtonResponse : MonoBehaviour
                 lastf = player.Frame();
             }
         }
+    }
+
+    private void saveRec()
+    {
+        string path = filePath + "\\" + fileName + ".txt";
+        string jsonString = "";
+        string s;
+        for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
+        {
+            s = createJson(frameList[i]);
+            jsonString = jsonString + s;
+        }
+        frameList.Clear(); //we've got the information we need, so we can delete this
+        File.WriteAllText(path, jsonString);
+        m.color = readyColour;
+        saveFlag = false;
+    }
+
+    private string createJson(Frame f) //extract the informtion we want, put it into our saveClass object and convert the object into JSON.
+    {
+        saveClass x = new saveClass(9);
+        //return JsonConvert.SerializeObject(x);
+        return JsonUtility.ToJson(x);
+    }
+}
+
+public class saveClass
+{
+    public int x;
+    public int z = 79;
+
+    public saveClass(int y)
+    {
+        x = y;
     }
 }
