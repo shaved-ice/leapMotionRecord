@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Leap;
 using System.IO;
+using System.Text;
 using Newtonsoft.Json;
 
 public class ButtonResponse : MonoBehaviour
@@ -100,16 +101,42 @@ public class ButtonResponse : MonoBehaviour
 
     private void saveRec()
     {
-        string path = filePath + "\\" + fileName + ".txt";
-        string jsonString = "";
-        string s;
-        for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
+        string path = filePath + "\\" + fileName + ".txt"; // the first \ is an escape charater for the second \
+        string s = "";
+        byte[] e;
+        UTF8Encoding utf = new UTF8Encoding();
+        if (File.Exists(path))
         {
-            s = createJson(frameList[i]);
-            jsonString = jsonString + s;
+            File.Delete(path);
         }
+        using (Stream w = File.Create(path))
+        {
+            using (BufferedStream b = new BufferedStream(w, 10))
+            {
+                for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
+                {
+                    s = createJson(frameList[i]);
+                    e = utf.GetBytes(s);
+                    b.Write(e, 0, e.Length);
+                }
+            }
+        }
+        //using (StreamWriter w = new StreamWriter(path))
+        //{
+        //    for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
+        //    {
+        //        s = createJson(frameList[i]);
+        //        w.WriteLine(s);
+        //    }
+        //}
+
+        //for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
+        //{
+        //    s = createJson(frameList[i]);
+        //    jsonString = jsonString + s;
+        //}
         frameList.Clear(); //we've got the information we need, so we can delete this
-        File.WriteAllText(path, jsonString);
+        //File.WriteAllText(path, jsonString);
         m.color = readyColour;
         saveFlag = false;
     }
