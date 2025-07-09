@@ -113,12 +113,9 @@ public class ButtonResponse : MonoBehaviour
         {
             using (BufferedStream b = new BufferedStream(w, 10))
             {
-                for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
-                {
-                    s = createJson(frameList[i]);
-                    e = utf.GetBytes(s);
-                    b.Write(e, 0, e.Length);
-                }
+                s = createJson(frameList);
+                e = utf.GetBytes(s);
+                b.Write(e, 0, e.Length);
             }
         }
         //using (StreamWriter w = new StreamWriter(path))
@@ -141,17 +138,19 @@ public class ButtonResponse : MonoBehaviour
         saveFlag = false;
     }
 
-    private string createJson(Frame f) //extract the informtion we want, put it into our saveClass object and convert the object into JSON.
+    private string createJson(List<Frame> f) //extract the informtion we want, put it into our saveClass object and convert the object into JSON.
     {
+        FrameJson fj = new FrameJson();
+        FrameBreakdown x;
+        for (int i = 0; i < f.Count; i++) //loop through every Frame we recorded
+        {
+            x = new FrameBreakdown(f[i]);
+            fj.addf(x);
+        }
         //saveClass x = new saveClass(9);
-        frameBreakdown x;
-        x = new frameBreakdown(f);
 
-        return JsonConvert.SerializeObject(x, serializeSettings); //the newtonsoft serialization method wrapper 
-        //the commands for many other serialization methods
-        //return JsonUtility.ToJson(x);
-        //return JsonSerialization.ToJson(x);
-        //return JsonSerializer.Serialize(x);
+        return JsonConvert.SerializeObject(fj, serializeSettings); //the newtonsoft serialization method wrapper 
+
     }
 }
 
@@ -160,29 +159,43 @@ public class ButtonResponse : MonoBehaviour
 //I hope by taking only the information we need, the program can be more efficient and a lag spike will be small - if not unnoticable. 
 //this will need to be adjusted in future models depending on what the replaying software requires. 
 
-public class frameBreakdown
+public class FrameJson
 {
-    public List<handBreakdown> handList = new List<handBreakdown>();
+    public List<FrameBreakdown> jsonList;
+    public FrameJson()
+    {
+        jsonList = new List<FrameBreakdown>();
+    }
 
-    public frameBreakdown(Frame f)
+    public void addf (FrameBreakdown f)
+    {
+        jsonList.Add(f);
+    }
+}
+
+public class FrameBreakdown
+{
+    public List<HandBreakdown> handList = new List<HandBreakdown>();
+
+    public FrameBreakdown(Frame f)
     {
         foreach (Hand h in f.Hands)
         {
-            handBreakdown hb = new handBreakdown(h);
+            HandBreakdown hb = new HandBreakdown(h);
             handList.Add(hb);
         }
 
     }
 }
 
-public class handBreakdown
+public class HandBreakdown
 {
-    public fingerBreakdown thumb;
-    public fingerBreakdown index;
-    public fingerBreakdown middle;
-    public fingerBreakdown ring;
-    public fingerBreakdown pinky;
-    public List<fingerBreakdown> extraFingers;
+    public FingerBreakdown thumb;
+    public FingerBreakdown index;
+    public FingerBreakdown middle;
+    public FingerBreakdown ring;
+    public FingerBreakdown pinky;
+    public List<FingerBreakdown> extraFingers;
     public Vector3 palmPos;
     public Vector3 palmVel;
     public Vector3 palmNormal;
@@ -192,13 +205,13 @@ public class handBreakdown
     public float palmWidth;
     public Vector3 wristPos;
     public bool isLeft;
-    public armBreakdown arm;
+    public ArmBreakdown arm;
 
-    public handBreakdown(Hand h)
+    public HandBreakdown(Hand h)
     {
         foreach (Finger fi in h.fingers)
         {
-            fingerBreakdown fb = new fingerBreakdown(fi);
+            FingerBreakdown fb = new FingerBreakdown(fi);
             switch (fi.Type)
             {
                 case Finger.FingerType.THUMB:
@@ -234,17 +247,17 @@ public class handBreakdown
         wristPos = h.WristPosition;
         isLeft = h.IsLeft;
 
-        armBreakdown a = new armBreakdown(h.Arm);
+        ArmBreakdown a = new ArmBreakdown(h.Arm);
         arm = a;
 
     }
 }
 
-public class armBreakdown
+public class ArmBreakdown
 {
     public Vector3 elbowPos;
     public Vector3 wristPos;
-    public armBreakdown(Arm a)
+    public ArmBreakdown(Arm a)
     {
         elbowPos = a.ElbowPosition;
         wristPos = a.WristPosition;
@@ -252,22 +265,22 @@ public class armBreakdown
 
 }
 
-public class fingerBreakdown
+public class FingerBreakdown
 {
-    public boneBreakdown metacarpal;
-    public boneBreakdown proximal;
-    public boneBreakdown intermediate;
-    public boneBreakdown distal;
-    public List<boneBreakdown> boneList = new List<boneBreakdown>();
+    public BoneBreakdown metacarpal;
+    public BoneBreakdown proximal;
+    public BoneBreakdown intermediate;
+    public BoneBreakdown distal;
+    public List<BoneBreakdown> boneList = new List<BoneBreakdown>();
     public Vector3 tipPos;
     public Vector3 direction;
     public float width;
     public float length;
-    public fingerBreakdown(Finger f)
+    public FingerBreakdown(Finger f)
     {
         foreach (Bone b in f.bones)
         {
-            boneBreakdown bb = new boneBreakdown(b);
+            BoneBreakdown bb = new BoneBreakdown(b);
             switch (b.Type)
             {
                 case Bone.BoneType.METACARPAL: //Note: thumbs have a 0 length metacarpal as they do not typically have one in real life.
@@ -295,7 +308,7 @@ public class fingerBreakdown
     }
 }
 
-public class boneBreakdown
+public class BoneBreakdown
 {
     public Vector3 prevJoint;
     public Vector3 nextJoint;
@@ -304,7 +317,7 @@ public class boneBreakdown
     public float length;
     public float width;
     public Quaternion rotation;
-    public boneBreakdown(Bone b)
+    public BoneBreakdown(Bone b)
     {
         prevJoint = b.PrevJoint;
         nextJoint = b.NextJoint;
