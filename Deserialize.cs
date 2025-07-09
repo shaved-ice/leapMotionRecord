@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System.Text;
+using System;
+using Newtonsoft.Json;
+using Leap;
 
 public class Deserialize : MonoBehaviour
 {
@@ -24,10 +27,11 @@ public class Deserialize : MonoBehaviour
 
     public void ButtonPress()
     {
+        Type t = typeof(FrameJson);
+        JsonSerializer j = new JsonSerializer(); 
+        FrameJson serialized;
         byte[] arr = new byte[32];
         UTF8Encoding ut = new UTF8Encoding();
-        int r = 1;
-        int x = 0;
         string filePath = directoryPath + "\\" + fileName + ".txt";
         if (!(File.Exists(filePath)))
         {
@@ -37,11 +41,14 @@ public class Deserialize : MonoBehaviour
         {
             using (Stream fs = File.OpenRead(filePath))
             {
-                using (StreamReader sr = new StreamReader(fs))
+                using (TextReader sr = new StreamReader(fs))
                 {
-                    Debug.Log(sr.ReadLine());
+                    //serial = sr.ReadLine();
+                    serialized = (FrameJson) j.Deserialize(sr, t);
                 }
             }
+            Debug.Log(serialized.jsonList[0].handList[0].palmPos);
+            //Debug.Log(serialized.JsonList[1]);
         }
 
 
@@ -68,5 +75,76 @@ public class Deserialize : MonoBehaviour
         //{
         //    string st = by.ToString();
         //}
+    }
+
+    //including the class structure so I can access data after deserialization.
+    public class FrameJson
+    {
+        public List<FrameBreakdown> jsonList;
+        public FrameJson()
+        {
+            jsonList = new List<FrameBreakdown>();
+        }
+
+        public void addf(FrameBreakdown f)
+        {
+            jsonList.Add(f);
+        }
+    }
+
+    public class FrameBreakdown
+    {
+        public List<HandBreakdown> handList = new List<HandBreakdown>();
+    }
+
+    public class HandBreakdown
+    {
+        public FingerBreakdown thumb;
+        public FingerBreakdown index;
+        public FingerBreakdown middle;
+        public FingerBreakdown ring;
+        public FingerBreakdown pinky;
+        public List<FingerBreakdown> extraFingers;
+        public Vector3 palmPos;
+        public Vector3 palmVel;
+        public Vector3 palmNormal;
+        public Vector3 palmDirection;
+        public Quaternion handRotation;
+        public float pinchDistance;
+        public float palmWidth;
+        public Vector3 wristPos;
+        public bool isLeft;
+        public ArmBreakdown arm;
+    }
+
+    public class ArmBreakdown
+    {
+        public Vector3 elbowPos;
+        public Vector3 wristPos;
+
+    }
+
+    public class FingerBreakdown
+    {
+        public BoneBreakdown metacarpal;
+        public BoneBreakdown proximal;
+        public BoneBreakdown intermediate;
+        public BoneBreakdown distal;
+        public List<BoneBreakdown> boneList = new List<BoneBreakdown>();
+        public Vector3 tipPos;
+        public Vector3 direction;
+        public float width;
+        public float length;
+    }
+
+    public class BoneBreakdown
+    {
+        public Vector3 prevJoint;
+        public Vector3 nextJoint;
+        public Vector3 center;
+        public Vector3 direction;
+        public float length;
+        public float width;
+        public Quaternion rotation;
     }
 }
