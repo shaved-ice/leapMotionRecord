@@ -5,18 +5,22 @@ using System.IO;
 using System.Text;
 using System;
 using Newtonsoft.Json;
-using Leap;
 
 public class Deserialize : MonoBehaviour
 {
 
     public string directoryPath;
     public string fileName;
+    public GameObject Indicator;
+    public Color readyColour = Color.green; //this allows users to change these colours to account for colorblindess etc. 
+    public Color waitColour = new Color(0.6f, 0.6f, 0.6f);
+    private Material m; 
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        m = Indicator.GetComponent<MeshRenderer>().material;
+        m.color = readyColour;
     }
 
     // Update is called once per frame
@@ -27,6 +31,7 @@ public class Deserialize : MonoBehaviour
 
     public void ButtonPress()
     {
+        m.color = waitColour;
         Type t = typeof(FrameJson);
         JsonSerializer j = new JsonSerializer(); 
         FrameJson serialized;
@@ -50,6 +55,7 @@ public class Deserialize : MonoBehaviour
             Debug.Log(serialized.jsonList[0].handList[0].palmPos);
             //Debug.Log(serialized.JsonList[1]);
         }
+        //m.color = readyColour;
 
 
         //buffered version attempt:
