@@ -21,6 +21,7 @@ public class ButtonResponse : MonoBehaviour
     private bool first = false;
     private bool saveFlag = false;
     private float saveTime;
+    private RotationFinder rotFinder;
     private Material m;
     private List<Frame> frameList = new List<Frame>();
     private Frame lastf;
@@ -28,6 +29,7 @@ public class ButtonResponse : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        rotFinder = new RotationFinder();
         m = indicator.GetComponent<MeshRenderer>().material;
         player = new Leap.Controller();
         m.color = readyColour;
@@ -144,7 +146,7 @@ public class ButtonResponse : MonoBehaviour
         FrameBreakdown x;
         for (int i = 0; i < f.Count; i++) //loop through every Frame we recorded
         {
-            x = new FrameBreakdown(f[i]);
+            x = new FrameBreakdown(f[i], rotFinder);
             fj.addf(x);
         }
         //saveClass x = new saveClass(9);
@@ -177,11 +179,11 @@ public class FrameBreakdown
 {
     public List<HandBreakdown> handList = new List<HandBreakdown>();
 
-    public FrameBreakdown(Frame f)
+    public FrameBreakdown(Frame f, RotationFinder rotFinder)
     {
         foreach (Hand h in f.Hands)
         {
-            HandBreakdown hb = new HandBreakdown(h);
+            HandBreakdown hb = new HandBreakdown(h, rotFinder);
             handList.Add(hb);
         }
 
@@ -207,7 +209,7 @@ public class HandBreakdown
     public bool isLeft;
     public ArmBreakdown arm;
 
-    public HandBreakdown(Hand h)
+    public HandBreakdown(Hand h, RotationFinder rotFinder)
     {
         foreach (Finger fi in h.fingers)
         {
@@ -247,7 +249,7 @@ public class HandBreakdown
         wristPos = h.WristPosition;
         isLeft = h.IsLeft;
 
-        ArmBreakdown a = new ArmBreakdown(h.Arm);
+        ArmBreakdown a = new ArmBreakdown(h.Arm, rotFinder);
         arm = a;
 
     }
@@ -257,12 +259,13 @@ public class ArmBreakdown
 {
     public Vector3 elbowPos;
     public Vector3 wristPos;
-    public ArmBreakdown(Arm a)
+    public Quaternion armRotation;
+    public ArmBreakdown(Arm a, RotationFinder rotFinder)
     {
         elbowPos = a.ElbowPosition;
         wristPos = a.WristPosition;
+        armRotation = rotFinder.findRot(elbowPos, wristPos);
     }
-
 }
 
 public class FingerBreakdown
@@ -328,6 +331,27 @@ public class BoneBreakdown
         rotation = b.Rotation;
     }
 }
+
+public class RotationFinder //since I can't find a way to convert from vector3 to quarternion, I am using an invisible object to find rotation values if the leap motion API does not provide one to me.
+//I'm putting this in a class for readability and ease of code.
+{
+    private GameObject rotationFinder;
+    private GameObject rotationTarget;
+    public RotationFinder()
+    {
+        rotationFinder = new GameObject("rotate"); //this starts a GameObject with no name and only a transform. We don't need it for anything else so this works. 
+        rotationTarget = new GameObject("target");
+    }
+    //to use this, simply use the findRot function and input where your object is and what position you want your vector to point to. It will then return the Quaternion of the world rotation calculated.
+    public Quaternion findRot(Vector3 startPos, Vector3 targetPos)
+    {
+        rotationFinder.transform.position = startPos;
+        rotationTarget.transform.position = targetPos; //move our objects to the coords given
+        rotationFinder.transform.LookAt(rotationTarget.transform); //now our rotationFinder object is turned to look at our target! We have our rotation Quaternion.
+        return rotationFinder.transform.rotation;
+    }
+}
+
 //example classes to make objects out of so I can test the Json Serialization
 //public class saveClass
 //{
