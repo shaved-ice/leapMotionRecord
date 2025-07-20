@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,6 +22,7 @@ public class Deserialize : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log(handModelLeft.transform.GetChild(0).localRotation);
         Type t = typeof(FrameJson);
         JsonSerializer j = new JsonSerializer();
         serialized = new FrameJson();
@@ -44,6 +46,8 @@ public class Deserialize : MonoBehaviour
             //Debug.Log(serialized.jsonList[0].handList[0].palmPos);
             //Debug.Log(serialized.JsonList[1]);
         }
+        TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
+        TransformHand(serialized.jsonList[0].handList[1]);
 
         ////simple transform code to test finger movement
         //HandBreakdown Hand = serialized.jsonList[0].handList[0];
@@ -101,36 +105,81 @@ public class Deserialize : MonoBehaviour
 
     public void TransformHand(HandBreakdown b)
     {
+        //these names aren't necessary but I think they make the code a lot more readable.
+        GameObject handRig;
+        GameObject wrist;
         GameObject hand;
         if (b.isLeft)
         {
-            hand = handModelLeft.transform.GetChild(0).gameObject;
+            handRig = handModelLeft.transform.GetChild(0).gameObject;
         }
         else
         {
-            hand = handModelRight.transform.GetChild(0).gameObject;
+            handRig = handModelRight.transform.GetChild(0).gameObject;
+        }
+        wrist = handRig.transform.GetChild(0).gameObject;
+        hand = wrist.transform.GetChild(0).gameObject;
+
+        //example moving palm to random location + rotation
+        //hand = handRig.transform.GetChild(0).GetChild(0).gameObject;
+        //moveToCoords(hand, Vector3.right);
+        //Quaternion quat = new Quaternion(1, 3, 50, 1);
+        //rotateQ(hand, quat);
+
+        //handRig.transform.position = b.arm.elbowPos;
+
+        //let's start from the wrist and work our way down to the fingers.
+        handRig.transform.position = b.palmPos;
+        spin(handRig, b.handRotation);
+
+
+        wrist.transform.position = b.arm.wristPos;
+        wrist.transform.Rotate(b.arm.armRotation.eulerAngles, Space.World);
+
+        // since it is children, it should go top to bottom so I will have thumb, index, etc. in that order
+        // since I named each finger for easy access, I cannot look through the fingers. 
+        fingerTransform(hand.transform.GetChild(0).gameObject, b.thumb, true);
+        fingerTransform(hand.transform.GetChild(1).gameObject, b.index, true);
+        fingerTransform(hand.transform.GetChild(2).gameObject, b.middle, true);
+        fingerTransform(hand.transform.GetChild(3).gameObject, b.ring, true);
+        fingerTransform(hand.transform.GetChild(4).gameObject, b.pinky, true);
+    }
+
+    private void fingerTransform(GameObject finger, FingerBreakdown f, bool thumbStatus) //every finger in this model has the distal, intermediate and proximal phalanges
+                                                                                         //except for the thumb which only has the distal and intermidiate phalanges.
+    {
+        GameObject distal = finger.transform.GetChild(0).gameObject;
+        GameObject intermediate = distal.transform.GetChild(0).gameObject;
+        distal.transform.position = f.distal.center;
+        spin(distal, f.distal.rotation);
+        intermediate.transform.position = f.intermediate.center;
+        spin(intermediate, f.intermediate.rotation);
+
+        if (!thumbStatus) //if this finger is NOT a thumb, include the proximal phalange.
+        {
+            GameObject proximal = intermediate.transform.GetChild(0).gameObject;
+            proximal.transform.position = f.proximal.center;
+            spin(proximal, f.proximal.rotation);
         }
 
     }
 
-    public void moveToCoords(GameObject g, Vector3 v)
-    {
-        Vector3 resv;
-        Quaternion resq;
-        g.transform.GetPositionAndRotation(out resv, out resq); //this puts the position and rotation in our variables.
-        g.transform.Translate((resv.x -  v.x), (resv.y - v.y), (resv.z - v.z), Space.World);
-    }
+    //public void rotateQ(GameObject g, Quaternion q)
+    //{
+    //    Vector3 resv;
+    //    Quaternion resq;
+    //    Quaternion inverse;
+    //    g.transform.GetPositionAndRotation(out resv, out resq);
+    //    inverse = Quaternion.Inverse(resq); //by applying the inverse rotation to the current rotation I hope to fully reset the object's rotation.
+    //    g.transform.Rotate(inverse.eulerAngles, Space.World); //now we can apply our new rotation
+    //    g.transform.Rotate(q.eulerAngles, Space.World);
+    //}
 
-    public void rotateQ(GameObject g, Quaternion q)
+    public void spin(GameObject g, Quaternion q)
     {
-        Vector3 resv;
-        Quaternion resq;
-        Quaternion inverse;
-        g.transform.GetPositionAndRotation(out resv, out resq);
-        inverse = Quaternion.Inverse(resq); //by applying the inverse rotation to the current rotation I hope to fully reset the object's rotation.
-        g.transform.Rotate(inverse.eulerAngles, Space.World); //now we can apply our new rotation
+        Quaternion inverse = Quaternion.Inverse(q); //by applying the inverse rotation to the current rotation I hope to fully reset the object's rotation.
+        g.transform.Rotate(inverse.eulerAngles, Space.World);
         g.transform.Rotate(q.eulerAngles, Space.World);
-
     }
 
     //including the class structure so I can access data after deserialization.
@@ -168,7 +217,7 @@ public class Deserialize : MonoBehaviour
         public Quaternion handRotation;
         public float pinchDistance;
         public float palmWidth;
-        public Vector3 wristPos;
+        public Vector3 wristPos; //change to the wrist Transform object later (wristJoint) 
         public bool isLeft;
         public ArmBreakdown arm;
     }
@@ -177,6 +226,7 @@ public class Deserialize : MonoBehaviour
     {
         public Vector3 elbowPos;
         public Vector3 wristPos;
+        public Quaternion armRotation;
 
     }
 
