@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -139,28 +138,58 @@ public class Deserialize : MonoBehaviour
         // since it is children, it should go top to bottom so I will have thumb, index, etc. in that order
         // since I named each finger for easy access, I cannot look through the fingers. 
         fingerTransform(hand.transform.GetChild(0).gameObject, b.thumb, true);
-        fingerTransform(hand.transform.GetChild(1).gameObject, b.index, true);
-        fingerTransform(hand.transform.GetChild(2).gameObject, b.middle, true);
-        fingerTransform(hand.transform.GetChild(3).gameObject, b.ring, true);
-        fingerTransform(hand.transform.GetChild(4).gameObject, b.pinky, true);
+        fingerTransform(hand.transform.GetChild(1).gameObject, b.index, false);
+        fingerTransform(hand.transform.GetChild(2).gameObject, b.middle, false);
+        fingerTransform(hand.transform.GetChild(3).gameObject, b.ring, false);
+        fingerTransform(hand.transform.GetChild(4).gameObject, b.pinky, false);
     }
 
     private void fingerTransform(GameObject finger, FingerBreakdown f, bool thumbStatus) //every finger in this model has the distal, intermediate and proximal phalanges
-                                                                                         //except for the thumb which only has the distal and intermidiate phalanges.
+                                                                                         //except for the thumb which only has the distal and intermediate phalanges.
+                                                                                         //fingers start from the inside (proximal) and their children go further out to the distal bone.
     {
-        GameObject distal = finger.transform.GetChild(0).gameObject;
-        GameObject intermediate = distal.transform.GetChild(0).gameObject;
-        distal.transform.position = f.distal.center;
-        spin(distal, f.distal.rotation);
-        intermediate.transform.position = f.intermediate.center;
-        spin(intermediate, f.intermediate.rotation);
-
-        if (!thumbStatus) //if this finger is NOT a thumb, include the proximal phalange.
+        GameObject intermediate;
+        if (!thumbStatus)
         {
-            GameObject proximal = intermediate.transform.GetChild(0).gameObject;
+            GameObject proximal = finger; 
+            intermediate = proximal.transform.GetChild(0).gameObject;
             proximal.transform.position = f.proximal.center;
             spin(proximal, f.proximal.rotation);
         }
+        else
+        {
+            intermediate = finger; 
+        }
+        intermediate.transform.position = f.intermediate.center;
+        spin(intermediate, f.intermediate.rotation);
+        GameObject distal = intermediate.transform.GetChild(0).gameObject;
+        distal.transform.position = f.distal.center;
+        spin(distal, f.distal.rotation);
+        Debug.Log(f.distal.rotation);
+
+        //GameObject proximal = finger.transform.GetChild(0).gameObject;
+        //GameObject intermediate = intermediate.transform.GetChild(0).gameObject;
+        //proximal.transform.position = f.proximal.center;
+        //spin(distal, f.distal.rotation);
+        //intermediate.transform.position = f.intermediate.center;
+        //spin(intermediate, f.intermediate.rotation);
+
+        //GameObject fingerTip;
+
+        //if (!thumbStatus) //if this finger is NOT a thumb, include the proximal phalange.
+        //{
+        //    GameObject proximal = intermediate.transform.GetChild(0).gameObject;
+        //    proximal.transform.position = f.proximal.center;
+        //    spin(proximal, f.proximal.rotation);
+        //    fingerTip = proximal.transform.GetChild(0).gameObject;
+        //}
+        //else
+        //{
+        //    fingerTip = intermediate.transform.GetChild(0).gameObject;
+        //}
+        ////for the pointing of the fingertips, since the leap motion finger tips are not seperate from the distal bone, 
+        //fingerTip.transform.position = f.tipPos;
+
 
     }
 
@@ -177,8 +206,9 @@ public class Deserialize : MonoBehaviour
 
     public void spin(GameObject g, Quaternion q)
     {
-        Quaternion inverse = Quaternion.Inverse(q); //by applying the inverse rotation to the current rotation I hope to fully reset the object's rotation.
-        g.transform.Rotate(inverse.eulerAngles, Space.World);
+        Quaternion inverse = Quaternion.Inverse(g.transform.rotation); //by applying the inverse rotation to the current rotation I hope to fully reset the object's rotation.
+        g.transform.rotation = Quaternion.identity;
+        //g.transform.Rotate(inverse.eulerAngles, Space.World);
         g.transform.Rotate(q.eulerAngles, Space.World);
     }
 
