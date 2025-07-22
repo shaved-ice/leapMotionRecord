@@ -116,7 +116,6 @@ public class Deserialize : MonoBehaviour
         {
             handRig = handModelRight.transform.GetChild(0).gameObject;
         }
-        resetHand(handRig);
         wrist = handRig.transform.GetChild(0).gameObject;
         hand = wrist.transform.GetChild(0).gameObject;
 
@@ -197,31 +196,10 @@ public class Deserialize : MonoBehaviour
 
     }
 
-    public void resetHand(GameObject g)
-    {
-        GameObject wrist = g.transform.GetChild(0).gameObject;
-        wrist.transform.rotation = Quaternion.identity;
-        GameObject hand = wrist.transform.GetChild(0).gameObject;
-        hand.transform.rotation = Quaternion.identity;
-        for (int i = 1; i < 5; i++) //loop through every finger except for thumb
-        {
-            GameObject proximal = hand.transform.GetChild(i).gameObject;
-            proximal.transform.rotation = Quaternion.identity;
-            GameObject intermediate = proximal.transform.GetChild(0).gameObject;
-            intermediate.transform.rotation = Quaternion.identity;
-            GameObject distal = intermediate.transform.GetChild(0).gameObject;
-            distal.transform.rotation = Quaternion.identity;
-        }
-        GameObject thumbintermediate = hand.transform.GetChild(0).gameObject;
-        thumbintermediate.transform.rotation = Quaternion.identity;
-        GameObject thumbdistal = thumbintermediate.transform.GetChild(0).gameObject;
-        thumbdistal.transform.rotation = Quaternion.identity;
-    }
-
     public void spin(GameObject g, Quaternion q)
     {
         //Quaternion inverse = Quaternion.Inverse(g.transform.rotation); //by applying the inverse rotation to the current rotation I hope to fully reset the object's rotation.
-        //g.transform.rotation = Quaternion.identity;
+        g.transform.rotation = Quaternion.identity;
         //g.transform.Rotate(inverse.eulerAngles, Space.World);
         g.transform.Rotate(q.eulerAngles, Space.World);
     }
