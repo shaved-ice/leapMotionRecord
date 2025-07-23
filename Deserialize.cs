@@ -14,6 +14,7 @@ public class Deserialize : MonoBehaviour
     public GameObject handModelLeft;
     public GameObject handModelRight;
     private FrameJson serialized;
+    private int maxSize;
     private int frameNum = 0;
 
     // I believe the three finger bones from palm to tip for each of the fingers of this model is the proximal, intermediate and distal 
@@ -45,8 +46,10 @@ public class Deserialize : MonoBehaviour
             //Debug.Log(serialized.jsonList[0].handList[0].palmPos);
             //Debug.Log(serialized.JsonList[1]);
         }
-        TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
-        TransformHand(serialized.jsonList[0].handList[1]);
+        maxSize = serialized.jsonList.Count;
+        //old testing of frame1
+        //TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
+        //TransformHand(serialized.jsonList[0].handList[1]);
 
         ////simple transform code to test finger movement
         //HandBreakdown Hand = serialized.jsonList[0].handList[0];
@@ -94,13 +97,19 @@ public class Deserialize : MonoBehaviour
         //}
     }
 
-    // Update is called once per frame
-    //void Update()
-    //{
-    //    TransformHand(serialized.jsonList[0].handList[0]);
-    //    TransformHand(serialized.jsonList[0].handList[1]);
-    //    frameNum = (frameNum + 1) % serialized.jsonList.Count; //increment the frameNum every time but don't go over the length of the framelist
-    //}
+    //Update is called once per frame
+    void FixedUpdate()
+    {
+        //if (frameNum < maxSize)
+        //{
+        //    TransformHand(serialized.jsonList[frameNum].handList[0]);
+        //    TransformHand(serialized.jsonList[frameNum].handList[1]);
+        //    frameNum++;
+        //}
+        TransformHand(serialized.jsonList[frameNum].handList[0]);
+        TransformHand(serialized.jsonList[frameNum].handList[1]);
+        frameNum = (frameNum + 1) % maxSize; //increment the frameNum every time but don't go over the length of the framelist
+    }
 
     public void TransformHand(HandBreakdown b)
     {
