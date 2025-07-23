@@ -64,7 +64,7 @@ public class ButtonResponse : MonoBehaviour
         recTime = true;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (recTime && !first)
         {
