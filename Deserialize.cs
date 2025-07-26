@@ -16,6 +16,7 @@ public class Deserialize : MonoBehaviour
     private FrameJson serialized;
     private int maxSize;
     private int frameNum = 0;
+    private bool playTime = true;
 
     // I believe the three finger bones from palm to tip for each of the fingers of this model is the proximal, intermediate and distal 
     // transforming finger tips seems to do nothing so I have left them out.
@@ -106,12 +107,49 @@ public class Deserialize : MonoBehaviour
         //    TransformHand(serialized.jsonList[frameNum].handList[1]);
         //    frameNum++;
         //}
-        TransformHand(serialized.jsonList[frameNum].handList[0]);
-        TransformHand(serialized.jsonList[frameNum].handList[1]);
-        frameNum = (frameNum + 1) % maxSize; //increment the frameNum every time but don't go over the length of the framelist
+        if (playTime)
+        {
+            DisplayFrame();
+            frameNum = (frameNum + 1) % maxSize; //increment the frameNum every time but don't go over the length of the framelist
+        }
     }
 
-    public void TransformHand(HandBreakdown b)
+    public void Pause()
+    {
+        playTime = false;
+    }
+
+    public void Play()
+    {
+        playTime = true;
+    }
+    
+    public void NextFrame()
+    {
+        frameNum = (frameNum + 1) % maxSize;
+        DisplayFrame();
+    }
+
+    public void LastFrame()
+    {
+        if (frameNum == 0)
+        {
+            frameNum = maxSize - 1;
+        }
+        else
+        {
+            frameNum = frameNum - 1;
+        }
+        DisplayFrame();
+    }
+
+    private void DisplayFrame()
+    {
+        TransformHand(serialized.jsonList[frameNum].handList[0]);
+        TransformHand(serialized.jsonList[frameNum].handList[1]);
+    }
+
+    private void TransformHand(HandBreakdown b)
     {
         //these names aren't necessary but I think they make the code a lot more readable.
         GameObject handRig;
@@ -177,7 +215,6 @@ public class Deserialize : MonoBehaviour
         GameObject distal = intermediate.transform.GetChild(0).gameObject;
         distal.transform.position = f.distal.prevJoint;
         spin(distal, f.distal.rotation);
-        Debug.Log(f.distal.rotation);
 
         //GameObject proximal = finger.transform.GetChild(0).gameObject;
         //GameObject intermediate = intermediate.transform.GetChild(0).gameObject;
