@@ -11,19 +11,24 @@ public class Deserialize : MonoBehaviour
 
     public string directoryPath;
     public string fileName;
-    public GameObject handModelLeft;
-    public GameObject handModelRight;
+    private GameObject handModelLeft;
+    private GameObject handModelRight;
+    public int frameIncrement;
+    //public GameObject scrubBar;
     private FrameJson serialized;
     private int maxSize;
     private int frameNum = 0;
     private bool playTime = true;
+    private ScrubBarScript scrubBar;
 
     // I believe the three finger bones from palm to tip for each of the fingers of this model is the proximal, intermediate and distal 
     // transforming finger tips seems to do nothing so I have left them out.
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log(handModelLeft.transform.GetChild(0).localRotation);
+        scrubBar = FindFirstObjectByType<ScrubBarScript>();
+        handModelLeft = GameObject.Find("Left");
+        handModelRight = GameObject.Find("Right");
         Type t = typeof(FrameJson);
         JsonSerializer j = new JsonSerializer();
         serialized = new FrameJson();
@@ -48,6 +53,8 @@ public class Deserialize : MonoBehaviour
             //Debug.Log(serialized.JsonList[1]);
         }
         maxSize = serialized.jsonList.Count;
+        DisplayFrame();
+        scrubBar.initialiseScrubBar();
         //old testing of frame1
         //TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
         //TransformHand(serialized.jsonList[0].handList[1]);
@@ -109,44 +116,81 @@ public class Deserialize : MonoBehaviour
         //}
         if (playTime)
         {
-            DisplayFrame();
             frameNum = (frameNum + 1) % maxSize; //increment the frameNum every time but don't go over the length of the framelist
+            DisplayFrame();
         }
     }
 
-    public void Pause()
-    {
-        playTime = false;
-    }
 
-    public void Play()
+    //USER INTERACTION FUNCTIONS
+    //##########################
+
+    public void PausePlay()
     {
-        playTime = true;
+        playTime = !playTime;
     }
     
     public void NextFrame()
     {
-        frameNum = (frameNum + 1) % maxSize;
+        if (frameNum < maxSize - 1) //do nothing if you are on the last frame
+        {
+            frameNum = frameNum + 1;
+        }
         DisplayFrame();
     }
 
-    public void LastFrame()
+    public void NextFrameLarge()
     {
-        if (frameNum == 0)
+        if (frameNum <= ((maxSize - 1) - frameIncrement))
+        {
+            frameNum = frameNum + frameIncrement;
+        }
+        else
         {
             frameNum = maxSize - 1;
         }
-        else
+        DisplayFrame();
+    }
+
+    public void PrevFrame()
+    {
+        if (frameNum > 1) //do nothing if you are on the first frame
         {
             frameNum = frameNum - 1;
         }
         DisplayFrame();
     }
 
+    public void PrevFrameLarge()
+    {
+        if (frameNum >= frameIncrement)
+        {
+            frameNum = frameNum - frameIncrement;
+        }
+        else
+        {
+            frameNum = 0; // stopping at the start and not looping around is more intuitive. 
+        }
+        DisplayFrame();
+    }
+    public void LastFrame()
+    {
+        frameNum = maxSize - 1;
+        DisplayFrame();
+    }
+
+    public void FirstFrame()
+    {
+        frameNum = 0;
+        DisplayFrame();
+    }
+    //##########################
+
     private void DisplayFrame()
     {
         TransformHand(serialized.jsonList[frameNum].handList[0]);
         TransformHand(serialized.jsonList[frameNum].handList[1]);
+        scrubBar.updateScrubBar();
     }
 
     private void TransformHand(HandBreakdown b)
@@ -320,5 +364,15 @@ public class Deserialize : MonoBehaviour
         public float length;
         public float width;
         public Quaternion rotation;
+    }
+
+    public int getMaxSize()
+    {
+        return maxSize;
+    }
+
+    public int getFrameNum()
+    {
+        return frameNum;
     }
 }
