@@ -14,19 +14,20 @@ public class Deserialize : MonoBehaviour
     private GameObject handModelLeft;
     private GameObject handModelRight;
     public int frameIncrement;
-    //public GameObject scrubBar;
     private FrameJson serialized;
     private int maxSize;
     private int frameNum = 0;
     private bool playTime = true;
-    private ScrubBarScript scrubBar;
-
+    public int FrameNum
+    {
+        get { return frameNum; }
+        set { frameNum = value; }
+    }
     // I believe the three finger bones from palm to tip for each of the fingers of this model is the proximal, intermediate and distal 
     // transforming finger tips seems to do nothing so I have left them out.
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        scrubBar = FindFirstObjectByType<ScrubBarScript>();
         handModelLeft = GameObject.Find("Left");
         handModelRight = GameObject.Find("Right");
         Type t = typeof(FrameJson);
@@ -54,7 +55,6 @@ public class Deserialize : MonoBehaviour
         }
         maxSize = serialized.jsonList.Count;
         DisplayFrame();
-        scrubBar.initialiseScrubBar();
         //old testing of frame1
         //TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
         //TransformHand(serialized.jsonList[0].handList[1]);
@@ -190,7 +190,6 @@ public class Deserialize : MonoBehaviour
     {
         TransformHand(serialized.jsonList[frameNum].handList[0]);
         TransformHand(serialized.jsonList[frameNum].handList[1]);
-        scrubBar.updateScrubBar();
     }
 
     private void TransformHand(HandBreakdown b)
@@ -371,8 +370,8 @@ public class Deserialize : MonoBehaviour
         return maxSize;
     }
 
-    public int getFrameNum()
+    public bool frameDiff(int fNum)
     {
-        return frameNum;
+        return (frameNum == fNum);
     }
 }
