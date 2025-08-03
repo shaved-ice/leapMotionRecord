@@ -11,13 +11,17 @@ public class Deserialize : MonoBehaviour
 
     public string directoryPath;
     public string fileName;
+    private string projDirectoryPath;
+    private string projFileName;
     private GameObject handModelLeft;
     private GameObject handModelRight;
     public int frameIncrement;
+    private JsonSerializer serializer;
     private FrameJson serialized;
     private int maxSize;
     private int frameNum = 0;
     private bool playTime = true;
+    private int fileNum = 0;
     public int FrameNum
     {
         get { return frameNum; }
@@ -30,30 +34,11 @@ public class Deserialize : MonoBehaviour
     {
         handModelLeft = GameObject.Find("Left");
         handModelRight = GameObject.Find("Right");
-        Type t = typeof(FrameJson);
-        JsonSerializer j = new JsonSerializer();
+        serializer = new JsonSerializer();
         serialized = new FrameJson();
         byte[] arr = new byte[32];
         UTF8Encoding ut = new UTF8Encoding();
-        string filePath = directoryPath + "\\" + fileName + ".txt";
-        if (!(File.Exists(filePath)))
-        {
-            Debug.Log("File doesn't exist!");
-        }
-        else
-        {
-            using (Stream fs = File.OpenRead(filePath))
-            {
-                using (TextReader sr = new StreamReader(fs))
-                {
-                    //serial = sr.ReadLine();
-                    serialized = (FrameJson)j.Deserialize(sr, t);
-                }
-            }
-            //Debug.Log(serialized.jsonList[0].handList[0].palmPos);
-            //Debug.Log(serialized.JsonList[1]);
-        }
-        maxSize = serialized.jsonList.Count;
+        deserializeFile(directoryPath, fileName);
         DisplayFrame();
         //old testing of frame1
         //TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
@@ -121,6 +106,29 @@ public class Deserialize : MonoBehaviour
         }
     }
 
+    private void deserializeFile(string dPath, string fName)
+    {
+        string filePath = dPath + "\\" + fName + ".txt";
+        if (!(File.Exists(filePath)))
+        {
+            Debug.Log("File doesn't exist!");
+        }
+        else
+        {
+            using (Stream fs = File.OpenRead(filePath))
+            {
+                using (TextReader sr = new StreamReader(fs))
+                {
+                    //serial = sr.ReadLine();
+                    serialized = (FrameJson)serializer.Deserialize(sr, typeof(FrameJson));
+                }
+            }
+            //Debug.Log(serialized.jsonList[0].handList[0].palmPos);
+            //Debug.Log(serialized.JsonList[1]);
+        }
+        maxSize = serialized.jsonList.Count;
+        fileNum++; //a new file has been read so increment the fileNum
+    } //since the function name doesn't describe displaying the new file, I don't include it
 
     //USER INTERACTION FUNCTIONS
     //##########################
@@ -194,7 +202,7 @@ public class Deserialize : MonoBehaviour
 
     private void TransformHand(HandBreakdown b)
     {
-        //these names aren't necessary but I think they make the code a lot more readable.
+        //these names aren't necessary but they make the code a lot more readable.
         GameObject handRig;
         GameObject wrist;
         GameObject hand;
@@ -372,6 +380,30 @@ public class Deserialize : MonoBehaviour
 
     public bool frameDiff(int fNum)
     {
-        return (frameNum == fNum);
+        return (frameNum != fNum);
+    }
+
+    public int getFileNum()
+    {
+        return fileNum;
+    }
+
+    public void acceptNewPath(string newPath) //for some reason the exact same code here from fileSubmitter fails to work.
+    {
+        projDirectoryPath = newPath;
+        Debug.Log(projDirectoryPath);
+    }
+
+    public void acceptNewFileName(string newFileName)
+    {
+        projFileName = newFileName;
+        Debug.Log(projFileName);
+    }
+
+    public void projReadNewFile()
+    {
+        deserializeFile(projDirectoryPath, projFileName);
+        frameNum = 0; //reset to the beginning
+        DisplayFrame();
     }
 }
