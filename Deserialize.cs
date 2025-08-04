@@ -15,12 +15,16 @@ public class Deserialize : MonoBehaviour
     private string projFileName;
     private GameObject handModelLeft;
     private GameObject handModelRight;
+    private GameObject hands;
     public int frameIncrement;
     private JsonSerializer serializer;
     private FrameJson serialized;
     private int maxSize;
     private int frameNum = 0;
     private bool playTime = true;
+    private Vector3 forwardPos; //position when hands/palms are facing away from you
+    private Vector3 backwardPos; //position when hands/palms are facing towards you
+    private bool forwardFacing = false; //I want to start the program with the palms facing towards us as in the initial specification
     private int fileNum = 0;
     public int FrameNum
     {
@@ -34,6 +38,13 @@ public class Deserialize : MonoBehaviour
     {
         handModelLeft = GameObject.Find("Left");
         handModelRight = GameObject.Find("Right");
+        hands = new GameObject("Hands"); 
+        handModelLeft.transform.SetParent(hands.transform, false);
+        handModelRight.transform.SetParent(hands.transform, false); //this scoops up the two hand objects given and places them as children under a gameObject named hands.
+        forwardPos = hands.transform.position;
+        backwardPos = new Vector3(forwardPos.x, forwardPos.y, forwardPos.z + -0.1f); //this should move the hands object closer to the user by 0.1f - I chose this number manually.
+        hands.transform.position = backwardPos; //since I've decided we always start in backwards mode - I initialise the hand position into the backwards one. 
+        //since we spun the hands around for backwards hands it creates extra distance from the player. I estimate this position to be make it so it is not quite as far. 
         serializer = new JsonSerializer();
         serialized = new FrameJson();
         byte[] arr = new byte[32];
@@ -192,12 +203,31 @@ public class Deserialize : MonoBehaviour
         frameNum = 0;
         DisplayFrame();
     }
+
+    public void reverseHands()
+    {
+        if (forwardFacing)
+        {
+            forwardFacing = false;
+            hands.transform.position = backwardPos;
+        }
+        else
+        {
+            forwardFacing = true;
+            hands.transform.position = forwardPos;
+        }
+        DisplayFrame(); //update the current frame too
+    }
     //##########################
 
     private void DisplayFrame()
     {
         TransformHand(serialized.jsonList[frameNum].handList[0]);
         TransformHand(serialized.jsonList[frameNum].handList[1]);
+        if (!forwardFacing) //only do this if we are facing backwards
+        {
+            hands.transform.Rotate(0f, 180f, 0f, Space.World); //this flips the rotation of the hands 180 degrees around the y axis AFTER the hands are displayed, ensuring nothing else changes 
+        }
     }
 
     private void TransformHand(HandBreakdown b)
@@ -229,7 +259,6 @@ public class Deserialize : MonoBehaviour
         //handRig.transform.position = b.palmPos;
         //spin(handRig, b.handRotation);
 
-
         wrist.transform.position = b.arm.wristPos;
         spin(wrist, b.arm.armRotation);
 
@@ -243,6 +272,7 @@ public class Deserialize : MonoBehaviour
         fingerTransform(hand.transform.GetChild(2).gameObject, b.middle, false);
         fingerTransform(hand.transform.GetChild(3).gameObject, b.ring, false);
         fingerTransform(hand.transform.GetChild(4).gameObject, b.pinky, false);
+
     }
 
     private void fingerTransform(GameObject finger, FingerBreakdown f, bool thumbStatus) //every finger in this model has the distal, intermediate and proximal phalanges
@@ -254,7 +284,7 @@ public class Deserialize : MonoBehaviour
         {
             GameObject proximal = finger; 
             intermediate = proximal.transform.GetChild(0).gameObject;
-            proximal.transform.position = f.proximal.prevJoint; //using prevJoint instead of centre to account for rotation.
+            proximal.transform.position = f.proximal.prevJoint; //using prevJoint instead of centre. This is because the model I'm using seems to have points on the fingers between the joints instead of actual bone parts.
             spin(proximal, f.proximal.rotation);
         }
         else
