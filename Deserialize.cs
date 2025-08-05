@@ -11,8 +11,6 @@ public class Deserialize : MonoBehaviour
 
     public string directoryPath;
     public string fileName;
-    private string projDirectoryPath;
-    private string projFileName;
     private GameObject handModelLeft;
     private GameObject handModelRight;
     private GameObject hands;
@@ -49,7 +47,7 @@ public class Deserialize : MonoBehaviour
         serialized = new FrameJson();
         byte[] arr = new byte[32];
         UTF8Encoding ut = new UTF8Encoding();
-        deserializeFile(directoryPath, fileName);
+        deserializeFile();
         DisplayFrame();
         //old testing of frame1
         //TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
@@ -117,9 +115,9 @@ public class Deserialize : MonoBehaviour
         }
     }
 
-    private void deserializeFile(string dPath, string fName)
+    private void deserializeFile()
     {
-        string filePath = dPath + "\\" + fName + ".txt";
+        string filePath = directoryPath + "\\" + fileName + ".txt";
         if (!(File.Exists(filePath)))
         {
             Debug.Log("File doesn't exist!");
@@ -420,19 +418,17 @@ public class Deserialize : MonoBehaviour
 
     public void acceptNewPath(string newPath) //for some reason the exact same code here from fileSubmitter fails to work.
     {
-        projDirectoryPath = newPath;
-        Debug.Log(projDirectoryPath);
+        directoryPath = newPath;
     }
 
     public void acceptNewFileName(string newFileName)
     {
-        projFileName = newFileName;
-        Debug.Log(projFileName);
+        fileName = newFileName;
     }
 
     public void projReadNewFile()
     {
-        deserializeFile(projDirectoryPath, projFileName);
+        deserializeFile();
         frameNum = 0; //reset to the beginning
         DisplayFrame();
     }
