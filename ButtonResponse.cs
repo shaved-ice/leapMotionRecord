@@ -1,98 +1,75 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using Leap;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using TMPro;
 
-public class ButtonResponse : MonoBehaviour
+public class Recorder : MonoBehaviour
 {
     Leap.Controller player;
-    public GameObject indicator; //place your indicator object here in unity. It simply changes colour to indicate to the player what is happening
-    public Color readyColour = Color.green; //this allows users to change these colours to account for colorblindess etc. 
-    public Color waitColour = new Color(0.6f, 0.6f, 0.6f);
-    public Color recColour = Color.red;
+    public TMP_Text textBox; //text box to inform the user of what is happening and of what to do
     public int secondsBeforeRecording = 5; //time before program starts recording
     public int secondsToRecord = 5;
     public string filePath;
-    public string fileName = "leapMotionRecord";
+    public string fileName = "leapMotionRecording"; //default file name
     private bool recTime = false;
     private bool first = false;
     private bool saveFlag = false;
     private float saveTime;
     private RotationFinder rotFinder;
-    private Material m;
     private List<Frame> frameList = new List<Frame>();
     private Frame lastf;
     private JsonSerializerSettings serializeSettings = new JsonSerializerSettings();
     // Start is called before the first frame update
     void Start()
     {
-        rotFinder = new RotationFinder();
-        m = indicator.GetComponent<MeshRenderer>().material;
+        textBox.text = "Press the button on your right to begin the recording program";
+        rotFinder = new RotationFinder(); //need this to find rotation angles when we are recording
         player = new Leap.Controller();
-        m.color = readyColour;
-        serializeSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;  
+        serializeSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;  //we need to ignore the reference loop handling to avoid errors 
     }
 
     public void ButtonPress()
     {
-        if (!recTime && !saveFlag)
+        if (!recTime && !saveFlag) //don't start a new recording if we are currently saving or recording
         {
-            m.color = waitColour;
-            Invoke("delayCall", secondsBeforeRecording);
+            textBox.text = Convert.ToString(secondsBeforeRecording) + " seconds before recording starts";
+            Invoke("delayCall", secondsBeforeRecording); //delay the start of the recording by secondsBeforeRecording amount of seconds
         }
-        //for (int i = 0; i < f.Hands.Count; i++) //loop through every hand in the frame
-        //{
-        //    for (int j = 0; j < f.Hands[i].fingers.Length; j++) //in the hand, go through every finger
-        //    {
-        //        if (f.Hands[i].fingers[j] != null)
-        //        {
-        //            for (int k = 0; k < f.Hands[i].fingers[j].bones.Length; k++) //in our finger, go through every bone
-        //            {
-        //                Debug.Log(f.Hands[i].fingers[j].bones[k].ToString() + " on hand: " + i + " on finger: " + j);
-        //            }
-        //        }
-
-        //    }
-        //}
     }
 
     private void delayCall()
     {
-        recTime = true;
+        recTime = true; //activates the recording to happen in the FixedUpdate function
     }
 
-    void FixedUpdate()
+    void FixedUpdate() //fixed update decreases the amount of random slowing and speeding up in the replay later
     {
-        if (recTime && !first)
+        if (recTime && !first) //if it's the first FixedUpdate call where we are recording then we set everything up
         {
+            textBox.text = "Recording in progress";
             frameList.Add(player.Frame());
-            lastf = player.Frame();
-            saveTime = Time.time;
-            //Debug.Log(Time.time);
-            m.color = recColour;
+            lastf = player.Frame(); //ensure no duplicates
+            saveTime = Time.time; //to check how much time has passed since we started
             first = true;
         }
         else if (recTime)
         {
-            if (Time.time > saveTime + secondsToRecord)
+            if (Time.time > saveTime + secondsToRecord) //since we've passed the amount of time to record, we end the recording and begin the saving
             {
-                //Debug.Log(Time.time);
-                //for (int i = 0; i < frameList.Count; i++) //prints every frame in our frameList
-                //{
-                //    Debug.Log(frameList[i]);
-                //}
                 first = false;
                 recTime = false;
                 saveFlag = true;
-                m.color = waitColour;
-                Invoke("saveRec", 1);
+                textBox.text = "Recording finished. Saving in progress.";
+                Invoke("saveRec", 1); //we delay by one second to give the textbox time to update. Without this the test we just put in is skipped entirely.
             }
             else
             {
-                if (!(player.Frame().Equals(lastf)))
+                if (!(player.Frame().Equals(lastf))) //if we have a frame that is different from the last frame then add it to the recording
                 {
                     frameList.Add(player.Frame());
                 }
@@ -101,7 +78,7 @@ public class ButtonResponse : MonoBehaviour
         }
     }
 
-    private void saveRec()
+    private void saveRec() //serializes and saves the recording into a file
     {
         string path = filePath + "\\" + fileName + ".txt"; // the first \ is an escape charater for the second \
         string s = "";
@@ -109,35 +86,20 @@ public class ButtonResponse : MonoBehaviour
         UTF8Encoding utf = new UTF8Encoding();
         if (File.Exists(path))
         {
-            File.Delete(path);
+            File.Delete(path); //delete a file in this location with this name if there is one
         }
         using (Stream w = File.Create(path))
         {
-            using (BufferedStream b = new BufferedStream(w, 10))
+            using (BufferedStream b = new BufferedStream(w, 10)) //my attempt at buffered writing to try to minimise the saving process's huge delay
             {
-                s = createJson(frameList);
+                s = createJson(frameList); //create the serialized object from the frames
                 e = utf.GetBytes(s);
-                b.Write(e, 0, e.Length);
+                b.Write(e, 0, e.Length); //write our serialized object into the file
             }
         }
-        //using (StreamWriter w = new StreamWriter(path))
-        //{
-        //    for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
-        //    {
-        //        s = createJson(frameList[i]);
-        //        w.WriteLine(s);
-        //    }
-        //}
-
-        //for (int i = 0; i < frameList.Count; i++) //loop through every Frame we recorded
-        //{
-        //    s = createJson(frameList[i]);
-        //    jsonString = jsonString + s;
-        //}
         frameList.Clear(); //we've got the information we need, so we can delete this
-        //File.WriteAllText(path, jsonString);
-        m.color = readyColour;
-        saveFlag = false;
+        textBox.text = "Recording saved successfully! Press the button again to begin another recording.";
+        saveFlag = false; //allows us to start a new recording
     }
 
     private string createJson(List<Frame> f) //extract the informtion we want, put it into our saveClass object and convert the object into JSON.
@@ -149,9 +111,8 @@ public class ButtonResponse : MonoBehaviour
             x = new FrameBreakdown(f[i], rotFinder);
             fj.addf(x);
         }
-        //saveClass x = new saveClass(9);
 
-        return JsonConvert.SerializeObject(fj, serializeSettings); //the newtonsoft serialization method wrapper 
+        return JsonConvert.SerializeObject(fj, serializeSettings); //the newtonsoft serialization method wrapper. We return the serialized form of the object we made.
 
     }
 }
@@ -159,7 +120,7 @@ public class ButtonResponse : MonoBehaviour
 //this is my estimated object of what information is needed for the recording from each Frame. 
 // We can just serialize the frame itself, but it's big and causes a huge lagspike when doing recordings. 
 //I hope by taking only the information we need, the program can be more efficient and a lag spike will be small - if not unnoticable. 
-//this will need to be adjusted in future models depending on what the replaying software requires. 
+//this version is intended to include a lot of information so that future users can easily just trim off all excess information for their versions.
 
 public class FrameJson
 {
@@ -286,7 +247,7 @@ public class FingerBreakdown
             BoneBreakdown bb = new BoneBreakdown(b);
             switch (b.Type)
             {
-                case Bone.BoneType.METACARPAL: //Note: thumbs have a 0 length metacarpal as they do not typically have one in real life.
+                case Bone.BoneType.METACARPAL: //Note: thumbs have a 0 length metacarpal as they do not typically have one in real life. (this is mentioned in the leap motion documentation) 
                     metacarpal = bb;
                     break;
                 case Bone.BoneType.PROXIMAL:
@@ -332,14 +293,14 @@ public class BoneBreakdown
     }
 }
 
-public class RotationFinder //since I can't find a way to convert from vector3 to quarternion, I am using an invisible object to find rotation values if the leap motion API does not provide one to me.
+public class RotationFinder //since I can't find a way to convert from vector3 to quarternion, I am using an invisible object to find rotation values that the leap motion API does not provide.
 //I'm putting this in a class for readability and ease of code.
 {
     private GameObject rotationFinder;
     private GameObject rotationTarget;
     public RotationFinder()
     {
-        rotationFinder = new GameObject("rotate"); //this starts a GameObject with no name and only a transform. We don't need it for anything else so this works. 
+        rotationFinder = new GameObject("rotate"); //this starts a GameObject with no name and only a transform. We don't need it for anything else so this is sufficient
         rotationTarget = new GameObject("target");
     }
     //to use this, simply use the findRot function and input where your object is and what position you want your vector to point to. It will then return the Quaternion of the world rotation calculated.
@@ -351,22 +312,3 @@ public class RotationFinder //since I can't find a way to convert from vector3 t
         return rotationFinder.transform.rotation;
     }
 }
-
-//example classes to make objects out of so I can test the Json Serialization
-//public class saveClass
-//{
-//    public int x;
-//public int z = 79;
-//public ha h = new ha();
-
-//public saveClass(int y)
-//{
-//    x = y;
-//}
-//}
-
-//public class ha
-//{
-//    private int x = 3;
-//    public int y = 5;
-//}
