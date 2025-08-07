@@ -9,21 +9,21 @@ using Newtonsoft.Json;
 public class Deserialize : MonoBehaviour
 {
 
-    public string directoryPath;
+    public string directoryPath; //the directory and file name where we read the recording file
     public string fileName;
-    private GameObject handModelLeft;
+    private GameObject handModelLeft; //the models of the hands we want to transform
     private GameObject handModelRight;
     private GameObject hands;
-    public int frameIncrement;
-    private JsonSerializer serializer;
-    private FrameJson serialized;
+    public int frameIncrement = 10;
+    private JsonSerializer serializer = new JsonSerializer();
+    private FrameJson serialized = new FrameJson(); //our deserialized file
     private int maxSize;
     private int frameNum = 0;
-    private bool playTime = true;
+    private bool playTime = true; //are we currently playing the recording? 
     private Vector3 forwardPos; //position when hands/palms are facing away from you
     private Vector3 backwardPos; //position when hands/palms are facing towards you
     private bool forwardFacing = false; //I want to start the program with the palms facing towards us as in the initial specification
-    private int fileNum = 0;
+    private int fileNum = 0; //this is for other scripts to be able to detect if the current file read has changed e.g new file loaded or read
     public int FrameNum
     {
         get { return frameNum; }
@@ -31,84 +31,28 @@ public class Deserialize : MonoBehaviour
     }
     // I believe the three finger bones from palm to tip for each of the fingers of this model is the proximal, intermediate and distal 
     // transforming finger tips seems to do nothing so I have left them out.
-    // Start is called before the first frame update
+    // Awake is called before the first frame update and before the Starts of other functions so this will allow the other scripts to be sure that the file and maxSize etc. variables will already be set
     void Awake()
     {
-        handModelLeft = GameObject.Find("Left");
+        handModelLeft = GameObject.Find("Left"); //finds the Game Object named "Left" - this way the suer doesn't have to manually place it into the script
         handModelRight = GameObject.Find("Right");
         hands = new GameObject("Hands"); 
         handModelLeft.transform.SetParent(hands.transform, false);
-        handModelRight.transform.SetParent(hands.transform, false); //this scoops up the two hand objects given and places them as children under a gameObject named hands.
-        forwardPos = hands.transform.position;
+        handModelRight.transform.SetParent(hands.transform, false); //this scoops up the two hand objects found and places them as children under a gameObject named hands.
+        forwardPos = hands.transform.position; //save this position as the forward hand position for if we need to revert back to this direction
         backwardPos = new Vector3(forwardPos.x, forwardPos.y, forwardPos.z + -0.1f); //this should move the hands object closer to the user by 0.1f - I chose this number manually.
+        //since we spun the hands around for backwards hands it creates extra distance from the player. I estimate this position to make it so that it is not quite as far. 
         hands.transform.position = backwardPos; //since I've decided we always start in backwards mode - I initialise the hand position into the backwards one. 
-        //since we spun the hands around for backwards hands it creates extra distance from the player. I estimate this position to be make it so it is not quite as far. 
-        serializer = new JsonSerializer();
-        serialized = new FrameJson();
         byte[] arr = new byte[32];
-        UTF8Encoding ut = new UTF8Encoding();
+        UTF8Encoding ut = new UTF8Encoding(); //set up the things needed for deserialization
         deserializeFile();
-        DisplayFrame();
-        //old testing of frame1
-        //TransformHand(serialized.jsonList[0].handList[0]); //stage 1 of development: displaying frame 1 correctly. 
-        //TransformHand(serialized.jsonList[0].handList[1]);
-
-        ////simple transform code to test finger movement
-        //HandBreakdown Hand = serialized.jsonList[0].handList[0];
-        //GameObject finger;
-        //GameObject palm;
-        //if (Hand.isLeft)
-        //{
-        //    palm = handModelLeft.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
-        //    finger = palm.transform.GetChild(1).gameObject;
-        //}
-        //else
-        //{
-        //    palm = handModelLeft.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
-        //    finger = palm.transform.GetChild(1).gameObject;
-        //}
-
-        //Debug.Log(handModelLeft.transform.GetChild(0).GetChild(0).gameObject); //prints wrists
-        //finger.transform.TransformPoint(Vector3.forward + Vector3.forward);
-        //finger.transform.GetChild(0).TransformPoint(Vector3.forward);
-
-
-
-        //buffered version attempt:
-        //if (!(File.Exists(filePath)))
-        //{
-        //    Debug.Log("File doesn't exist!");
-        //}
-        //else
-        //{
-        //    using (Stream fs = File.OpenRead(filePath))
-        //    {
-        //        using (BufferedStream b = new BufferedStream(fs, 10))
-        //        {
-        //            while (r != 0 && x < 10) // read function returns 0 when it reaches the end of the stream 
-        //            {
-        //                r = b.Read(arr, 0, 1);
-        //                x++;
-        //            }
-        //        }
-        //    }
-        //}
-        //foreach (byte by in arr)
-        //{
-        //    string st = by.ToString();
-        //}
+        DisplayFrame(); //deserialize and then display the first frame
     }
 
     //Update is called once per frame
     void FixedUpdate()
     {
-        //if (frameNum < maxSize)
-        //{
-        //    TransformHand(serialized.jsonList[frameNum].handList[0]);
-        //    TransformHand(serialized.jsonList[frameNum].handList[1]);
-        //    frameNum++;
-        //}
-        if (playTime)
+        if (playTime && (maxSize != 0))
         {
             frameNum = (frameNum + 1) % maxSize; //increment the frameNum every time but don't go over the length of the framelist
             DisplayFrame();
@@ -121,6 +65,7 @@ public class Deserialize : MonoBehaviour
         if (!(File.Exists(filePath)))
         {
             Debug.Log("File doesn't exist!");
+            maxSize = 0;
         }
         else
         {
@@ -128,95 +73,13 @@ public class Deserialize : MonoBehaviour
             {
                 using (TextReader sr = new StreamReader(fs))
                 {
-                    //serial = sr.ReadLine();
                     serialized = (FrameJson)serializer.Deserialize(sr, typeof(FrameJson));
                 }
             }
-            //Debug.Log(serialized.jsonList[0].handList[0].palmPos);
-            //Debug.Log(serialized.JsonList[1]);
+            maxSize = serialized.jsonList.Count;
         }
-        maxSize = serialized.jsonList.Count;
         fileNum++; //a new file has been read so increment the fileNum
-    } //since the function name doesn't describe displaying the new file, I don't include it
-
-    //USER INTERACTION FUNCTIONS
-    //##########################
-
-    public void PausePlay()
-    {
-        playTime = !playTime;
-    }
-    
-    public void NextFrame()
-    {
-        if (frameNum < maxSize - 1) //do nothing if you are on the last frame
-        {
-            frameNum = frameNum + 1;
-        }
-        DisplayFrame();
-    }
-
-    public void NextFrameLarge()
-    {
-        if (frameNum <= ((maxSize - 1) - frameIncrement))
-        {
-            frameNum = frameNum + frameIncrement;
-        }
-        else
-        {
-            frameNum = maxSize - 1;
-        }
-        DisplayFrame();
-    }
-
-    public void PrevFrame()
-    {
-        if (frameNum > 1) //do nothing if you are on the first frame
-        {
-            frameNum = frameNum - 1;
-        }
-        DisplayFrame();
-    }
-
-    public void PrevFrameLarge()
-    {
-        if (frameNum >= frameIncrement)
-        {
-            frameNum = frameNum - frameIncrement;
-        }
-        else
-        {
-            frameNum = 0; // stopping at the start and not looping around is more intuitive. 
-        }
-        DisplayFrame();
-    }
-    public void LastFrame()
-    {
-        frameNum = maxSize - 1;
-        DisplayFrame();
-    }
-
-    public void FirstFrame()
-    {
-        frameNum = 0;
-        DisplayFrame();
-    }
-
-    public void reverseHands()
-    {
-        if (forwardFacing)
-        {
-            forwardFacing = false;
-            hands.transform.position = backwardPos;
-        }
-        else
-        {
-            forwardFacing = true;
-            hands.transform.position = forwardPos;
-        }
-        DisplayFrame(); //update the current frame too
-    }
-    //##########################
+    } //since the function name doesn't describe displaying the new file, I don't include it - this way it's more intuitive to use
 
     private void DisplayFrame()
     {
@@ -236,7 +99,7 @@ public class Deserialize : MonoBehaviour
         GameObject hand;
         if (b.isLeft)
         {
-            handRig = handModelLeft.transform.GetChild(0).gameObject;
+            handRig = handModelLeft.transform.GetChild(0).gameObject; //find out if we are the left or right hand
         }
         else
         {
@@ -245,19 +108,7 @@ public class Deserialize : MonoBehaviour
         wrist = handRig.transform.GetChild(0).gameObject;
         hand = wrist.transform.GetChild(0).gameObject;
 
-        //example moving palm to random location + rotation
-        //hand = handRig.transform.GetChild(0).GetChild(0).gameObject;
-        //moveToCoords(hand, Vector3.right);
-        //Quaternion quat = new Quaternion(1, 3, 50, 1);
-        //rotateQ(hand, quat);
-
-        //handRig.transform.position = b.arm.elbowPos;
-
-        //let's start from the wrist and work our way down to the fingers.
-        //handRig.transform.position = b.palmPos;
-        //spin(handRig, b.handRotation);
-
-        wrist.transform.position = b.arm.wristPos;
+        wrist.transform.position = b.arm.wristPos; //work through each part of the hand, transforming it to the right position and spinning it to the right rotation
         spin(wrist, b.arm.armRotation);
 
         hand.transform.position = b.palmPos;
@@ -278,7 +129,7 @@ public class Deserialize : MonoBehaviour
                                                                                          //fingers start from the inside (proximal) and their children go further out to the distal bone.
     {
         GameObject intermediate;
-        if (!thumbStatus)
+        if (!thumbStatus) //since all fingers apart from thumbs have the proximal phalange and it is the one we access first - we do this one first
         {
             GameObject proximal = finger; 
             intermediate = proximal.transform.GetChild(0).gameObject;
@@ -287,49 +138,23 @@ public class Deserialize : MonoBehaviour
         }
         else
         {
-            intermediate = finger; 
+            intermediate = finger; //we make sure we have an intermediate here so that we don't need an extra if statement to use the intermediate in the next section
         }
         intermediate.transform.position = f.intermediate.prevJoint;
         spin(intermediate, f.intermediate.rotation);
         GameObject distal = intermediate.transform.GetChild(0).gameObject;
         distal.transform.position = f.distal.prevJoint;
         spin(distal, f.distal.rotation);
-
-        //GameObject proximal = finger.transform.GetChild(0).gameObject;
-        //GameObject intermediate = intermediate.transform.GetChild(0).gameObject;
-        //proximal.transform.position = f.proximal.center;
-        //spin(distal, f.distal.rotation);
-        //intermediate.transform.position = f.intermediate.center;
-        //spin(intermediate, f.intermediate.rotation);
-
-        //GameObject fingerTip;
-
-        //if (!thumbStatus) //if this finger is NOT a thumb, include the proximal phalange.
-        //{
-        //    GameObject proximal = intermediate.transform.GetChild(0).gameObject;
-        //    proximal.transform.position = f.proximal.center;
-        //    spin(proximal, f.proximal.rotation);
-        //    fingerTip = proximal.transform.GetChild(0).gameObject;
-        //}
-        //else
-        //{
-        //    fingerTip = intermediate.transform.GetChild(0).gameObject;
-        //}
-        ////for the pointing of the fingertips, since the leap motion finger tips are not seperate from the distal bone, 
-        //fingerTip.transform.position = f.tipPos;
-
-
     }
 
     public void spin(GameObject g, Quaternion q)
     {
-        //Quaternion inverse = Quaternion.Inverse(g.transform.rotation); //by applying the inverse rotation to the current rotation I hope to fully reset the object's rotation.
-        g.transform.rotation = Quaternion.identity;
-        //g.transform.Rotate(inverse.eulerAngles, Space.World);
-        g.transform.Rotate(q.eulerAngles, Space.World);
+        g.transform.rotation = Quaternion.identity; //reset the object's rotation
+        g.transform.Rotate(q.eulerAngles, Space.World); //apply new rotation
     }
 
-    //including the class structure so I can access data after deserialization.
+    //including the class structure from the recorder so I can access data after deserialization.
+    //I removed the functions as I only need the format of the variables 
     public class FrameJson
     {
         public List<FrameBreakdown> jsonList;
@@ -401,12 +226,23 @@ public class Deserialize : MonoBehaviour
         public Quaternion rotation;
     }
 
-    public int getMaxSize()
+    // ## FUNCTIONS FOR INTERACTION OUTSIDE OF THIS SCRIPT
+    public void setFrameIncrement(int newIncrement)
+    {
+        frameIncrement = newIncrement;
+    }
+
+    public int getFrameIncrement()
+    {
+        return frameIncrement;
+    }
+
+    public int getMaxSize()     
     {
         return maxSize;
     }
 
-    public bool frameDiff(int fNum)
+    public bool frameDiff(int fNum) //return true if the frameNum is different from ours
     {
         return (frameNum != fNum);
     }
@@ -416,7 +252,7 @@ public class Deserialize : MonoBehaviour
         return fileNum;
     }
 
-    public void acceptNewPath(string newPath) //for some reason the exact same code here from fileSubmitter fails to work.
+    public void acceptNewPath(string newPath) //to be used for reading a new file 
     {
         directoryPath = newPath;
     }
@@ -432,4 +268,98 @@ public class Deserialize : MonoBehaviour
         frameNum = 0; //reset to the beginning
         DisplayFrame();
     }
+
+    public FrameJson getFile() //send file to be saved etc.
+    {
+        return serialized;
+    }
+
+    public void setFile(FrameJson newFile) //load in a given FrameJson file.
+    {
+        serialized = newFile;
+        frameNum = 0;
+        maxSize = serialized.jsonList.Count;
+        fileNum++;
+        DisplayFrame();
+
+    }
+
+    //USER INTERACTION FUNCTIONS
+    //##########################
+
+    public void PausePlay()
+    {
+        playTime = !playTime;
+    }
+
+    public void NextFrame() //we stop at the end because it's more intuitive
+    {
+        if (frameNum < maxSize - 1) //do nothing if you are on the last frame
+        {
+            frameNum = frameNum + 1;
+        }
+        DisplayFrame();
+    }
+
+    public void NextFrameLarge()
+    {
+        if (frameNum <= ((maxSize - 1) - frameIncrement)) //if we are more than frameIncrement away from the maxSize then just increment it
+        {
+            frameNum = frameNum + frameIncrement;
+        }
+        else //otherwise just make it the maxSize to account for any frame increment you would've been able to make
+        {
+            frameNum = maxSize - 1;
+        }
+        DisplayFrame();
+    }
+
+    public void PrevFrame() //we stop at the start because it's more intuitive
+    {
+        if (frameNum > 0) //do nothing if you are on the first frame
+        {
+            frameNum = frameNum - 1;
+        }
+        DisplayFrame();
+    }
+
+    public void PrevFrameLarge()
+    {
+        if (frameNum >= frameIncrement) //if we are more than frameIncrement away from the minimum size then just decrement it
+        {
+            frameNum = frameNum - frameIncrement;
+        }
+        else //otherwise just make it the minimum size to account for any frame decrement you would've been able to make
+        {
+            frameNum = 0;
+        }
+        DisplayFrame();
+    }
+    public void LastFrame()
+    {
+        frameNum = maxSize - 1;
+        DisplayFrame();
+    }
+
+    public void FirstFrame()
+    {
+        frameNum = 0;
+        DisplayFrame();
+    }
+
+    public void reverseHands() //reverse the direction of the hands, move the Hands parent object to the correct position for the direction the hands are facing and then display the new hands.
+    {
+        if (forwardFacing)
+        {
+            forwardFacing = false;
+            hands.transform.position = backwardPos;
+        }
+        else
+        {
+            forwardFacing = true;
+            hands.transform.position = forwardPos;
+        }
+        DisplayFrame(); //update the current frame too
+    }
+
 }
