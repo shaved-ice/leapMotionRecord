@@ -19,20 +19,20 @@ public class ScrubSliderBarScript : MonoBehaviour
     {
         deserializer = FindFirstObjectByType<Deserialize>();
         scrubSlider = FindFirstObjectByType<Slider>();
-        initialiseSlider();
-        fileNum = deserializer.getFileNum();
+        InitialiseSlider();
+        fileNum = deserializer.GetFileNum();
     }
 
     // Update is called once per frame
     void Update()
     {
-        int newFileNum = deserializer.getFileNum();
+        int newFileNum = deserializer.GetFileNum();
         if (fileNum != newFileNum)
         {
             fileNum = newFileNum; //new file read so we restart everything
-            initialiseSlider();
+            InitialiseSlider();
         }
-        if ((deserializer.frameDiff((int)fNum)) && !selectBool) //if our frameNum is different from the one actually being replayed AND the user isn't currently selecting us then update the bar
+        if ((deserializer.FrameDiff((int)fNum)) && !selectBool) //if our frameNum is different from the one actually being replayed AND the user isn't currently selecting us then update the bar
         {
             fNum = (float)(deserializer.FrameNum);
             scrubSlider.Value = fNum;
@@ -40,17 +40,17 @@ public class ScrubSliderBarScript : MonoBehaviour
 
     }
 
-    public void initialiseSlider()
+    public void InitialiseSlider()
     {
-        scrubSlider.MaxValue = (deserializer.getMaxSize() - 1); //this way we don't have to waste time calculating the percentage space we need to put the slider in
+        scrubSlider.MaxValue = (deserializer.GetMaxSize() - 1); //this way we don't have to waste time calculating the percentage space we need to put the slider in
         scrubSlider.Value = 0f; //always restart the bar to 0
     }
 
-    public void functionSelectUpdate()
+    public void FunctionSelectUpdate()
     {
         selectBool = true; //lets us know we are currently being selected so avoid updating the bar as not to hinder the user
     }
-    public void functionUnselectUpdate()
+    public void FunctionUnselectUpdate()
     {
         deserializer.FrameNum = (int)scrubSlider.Value; //update deserializer with the new frame num
         selectBool = false;
