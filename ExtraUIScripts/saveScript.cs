@@ -23,14 +23,14 @@ public class saveScript : MonoBehaviour
         }
     }
 
-    public void updateSaveFileName(string newFileName)
+    public void UpdateSaveFileName(string newFileName)
     {
         saveFileName = newFileName;
     }
 
-    public void saveAFile()
+    public void SaveAFile()
     {
-        storage[currentFile] = deserializer.getFile(); //save the file into our storage at the current index
+        storage[currentFile] = deserializer.GetFile(); //save the file into our storage at the current index
         if (saveFileName == "") //change the text of the fileHolder to reflect the name of our newly saved file
         {
             fileHolder[1].text = currentFile.ToString(); //if there's no file name given, just save the number as the name
@@ -43,11 +43,11 @@ public class saveScript : MonoBehaviour
         status.text = "file saved!";
     }
 
-    public void loadAFile()
+    public void LoadAFile()
     {
         if (storedOrNot[currentFile])
         {
-            deserializer.setFile(storage[currentFile]); //call the deserializer load file function to load the file
+            deserializer.SetFile(storage[currentFile]); //call the deserializer load file function to load the file
             status.text = "file loaded!";
         }
         else
@@ -56,7 +56,7 @@ public class saveScript : MonoBehaviour
         }
     }
 
-    public void deleteASaveFile()
+    public void DeleteASaveFile()
     {
         storage[currentFile] = emptyFile; //change it to take up less storage space
         storedOrNot[currentFile] = false;
@@ -64,7 +64,7 @@ public class saveScript : MonoBehaviour
         status.text = "file deleted!";
     }
 
-    public void prevFile()
+    public void PrevFile()
     {
         string[] textHolder = new string[3];
         for (int j = 0; j < 3; j++)  //save all the text so we don't lose any
@@ -93,7 +93,7 @@ public class saveScript : MonoBehaviour
         }
     }
 
-    public void nextFile()
+    public void NextFile()
     {
         string[] textHolder = new string[3];
         for (int j = 0; j < 3; j++)  //save all the text so we don't lose any
