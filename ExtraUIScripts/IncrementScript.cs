@@ -18,36 +18,36 @@ public class IncrementScript : MonoBehaviour
     }
     void Update()
     {
-        int newIncrement = deserializer.getFrameIncrement();
+        int newIncrement = deserializer.GetFrameIncrement();
         if (increment != newIncrement)
         {
             increment = newIncrement;
-            displayIncrement();
+            DisplayIncrement();
         }
     }
 
-    public void updateIncrement(string i)
+    public void UpdateIncrement(string i)
     {
         incrementError.text = "";
         try
         {
             int x = Int32.Parse(i);
             increment = x;
-            displayIncrement();
-            deserializer.setFrameIncrement(increment);
+            DisplayIncrement();
+            deserializer.SetFrameIncrement(increment);
         }
         catch
         {
-            displayError(i);
+            DisplayError(i);
         }
     }
 
-    private void displayIncrement()
+    private void DisplayIncrement()
     {
         incrementText.text = "Increment: " + increment;
     }
 
-    private void displayError(string error)
+    private void DisplayError(string error)
     {
         incrementError.text = "Error! " + error + " is not an integer.";
     }
