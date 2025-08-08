@@ -38,11 +38,11 @@ public class Recorder : MonoBehaviour
         if (!recTime && !saveFlag) //don't start a new recording if we are currently saving or recording
         {
             textBox.text = Convert.ToString(secondsBeforeRecording) + " seconds before recording starts";
-            Invoke("delayCall", secondsBeforeRecording); //delay the start of the recording by secondsBeforeRecording amount of seconds
+            Invoke("DelayCall", secondsBeforeRecording); //delay the start of the recording by secondsBeforeRecording amount of seconds
         }
     }
 
-    private void delayCall()
+    private void DelayCall()
     {
         recTime = true; //activates the recording to happen in the FixedUpdate function
     }
