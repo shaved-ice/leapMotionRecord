@@ -65,7 +65,7 @@ public class Recorder : MonoBehaviour
                 recTime = false;
                 saveFlag = true;
                 textBox.text = "Recording finished. Saving in progress.";
-                Invoke("saveRec", 1); //we delay by one second to give the textbox time to update. Without this the test we just put in is skipped entirely.
+                Invoke("SaveRec", 1); //we delay by one second to give the textbox time to update. Without this the test we just put in is skipped entirely.
             }
             else
             {
@@ -78,7 +78,7 @@ public class Recorder : MonoBehaviour
         }
     }
 
-    private void saveRec() //serializes and saves the recording into a file
+    private void SaveRec() //serializes and saves the recording into a file
     {
         string path = filePath + "\\" + fileName + ".txt"; // the first \ is an escape charater for the second \
         string s = "";
@@ -92,7 +92,7 @@ public class Recorder : MonoBehaviour
         {
             using (BufferedStream b = new BufferedStream(w, 10)) //my attempt at buffered writing to try to minimise the saving process's huge delay
             {
-                s = createJson(frameList); //create the serialized object from the frames
+                s = CreateJson(frameList); //create the serialized object from the frames
                 e = utf.GetBytes(s);
                 b.Write(e, 0, e.Length); //write our serialized object into the file
             }
@@ -102,7 +102,7 @@ public class Recorder : MonoBehaviour
         saveFlag = false; //allows us to start a new recording
     }
 
-    private string createJson(List<Frame> f) //extract the informtion we want, put it into our saveClass object and convert the object into JSON.
+    private string CreateJson(List<Frame> f) //extract the informtion we want, put it into our saveClass object and convert the object into JSON.
     {
         FrameJson fj = new FrameJson();
         FrameBreakdown x;
