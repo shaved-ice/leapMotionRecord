@@ -46,7 +46,7 @@ public class Deserialize : MonoBehaviour
         hands.transform.position = backwardPos; //since I've decided we always start in backwards mode - I initialise the hand position into the backwards one. 
         byte[] arr = new byte[32];
         UTF8Encoding ut = new UTF8Encoding(); //set up the things needed for deserialization
-        deserializeFile();
+        DeserializeFile();
         DisplayFrame(); //deserialize and then display the first frame
     }
 
@@ -60,7 +60,7 @@ public class Deserialize : MonoBehaviour
         }
     }
 
-    private void deserializeFile()
+    private void DeserializeFile()
     {
         string filePath = directoryPath + "\\" + fileName + ".txt";
         if (!(File.Exists(filePath)))
@@ -93,9 +93,9 @@ public class Deserialize : MonoBehaviour
     private void ValidateFile()
     {
         validFile = true;
-        if (serialized == null)
+        if (serialized == null) //if the object given isn't an actual FrameJson object it will be null so we know the file is invalid if it is null
         {
-            validFile = false;
+            validFile = false; 
         }
         else
         {
@@ -147,15 +147,15 @@ public class Deserialize : MonoBehaviour
 
         // since it is children, it should go top to bottom so I will have thumb, index, etc. in that order
         // since I named each finger for easy access, I cannot look through the fingers. 
-        fingerTransform(hand.transform.GetChild(0).gameObject, b.thumb, true);
-        fingerTransform(hand.transform.GetChild(1).gameObject, b.index, false);
-        fingerTransform(hand.transform.GetChild(2).gameObject, b.middle, false);
-        fingerTransform(hand.transform.GetChild(3).gameObject, b.ring, false);
-        fingerTransform(hand.transform.GetChild(4).gameObject, b.pinky, false);
+        FingerTransform(hand.transform.GetChild(0).gameObject, b.thumb, true);
+        FingerTransform(hand.transform.GetChild(1).gameObject, b.index, false);
+        FingerTransform(hand.transform.GetChild(2).gameObject, b.middle, false);
+        FingerTransform(hand.transform.GetChild(3).gameObject, b.ring, false);
+        FingerTransform(hand.transform.GetChild(4).gameObject, b.pinky, false);
 
     }
 
-    private void fingerTransform(GameObject finger, FingerBreakdown f, bool thumbStatus) //every finger in this model has the distal, intermediate and proximal phalanges
+    private void FingerTransform(GameObject finger, FingerBreakdown f, bool thumbStatus) //every finger in this model has the distal, intermediate and proximal phalanges
                                                                                          //except for the thumb which only has the distal and intermediate phalanges.
                                                                                          //fingers start from the inside (proximal) and their children go further out to the distal bone.
     {
@@ -258,54 +258,54 @@ public class Deserialize : MonoBehaviour
     }
 
     // ## FUNCTIONS FOR INTERACTION OUTSIDE OF THIS SCRIPT
-    public void setFrameIncrement(int newIncrement)
+    public void SetFrameIncrement(int newIncrement)
     {
         frameIncrement = newIncrement;
     }
 
-    public int getFrameIncrement()
+    public int GetFrameIncrement()
     {
         return frameIncrement;
     }
 
-    public int getMaxSize()
+    public int GetMaxSize()
     {
         return maxSize;
     }
 
-    public bool frameDiff(int fNum) //return true if the frameNum is different from ours
+    public bool FrameDiff(int fNum) //return true if the frameNum is different from ours
     {
         return (frameNum != fNum);
     }
 
-    public int getFileNum()
+    public int GetFileNum()
     {
         return fileNum;
     }
 
-    public void acceptNewPath(string newPath) //to be used for reading a new file 
+    public void AcceptNewPath(string newPath) //to be used for reading a new file 
     {
         directoryPath = newPath;
     }
 
-    public void acceptNewFileName(string newFileName)
+    public void AcceptNewFileName(string newFileName)
     {
         fileName = newFileName;
     }
 
-    public void projReadNewFile()
+    public void ProjReadNewFile()
     {
-        deserializeFile();
+        DeserializeFile();
         frameNum = 0; //reset to the beginning
         DisplayFrame();
     }
 
-    public FrameJson getFile() //send file to be saved etc.
+    public FrameJson GetFile() //send file to be saved etc.
     {
         return serialized;
     }
 
-    public void setFile(FrameJson newFile) //load in a given FrameJson file.
+    public void SetFile(FrameJson newFile) //load in a given FrameJson file.
     {
         serialized = newFile;
         frameNum = 0;
@@ -378,7 +378,7 @@ public class Deserialize : MonoBehaviour
         DisplayFrame();
     }
 
-    public void reverseHands() //reverse the direction of the hands, move the Hands parent object to the correct position for the direction the hands are facing and then display the new hands.
+    public void ReverseHands() //reverse the direction of the hands, move the Hands parent object to the correct position for the direction the hands are facing and then display the new hands.
     {
         if (forwardFacing)
         {
