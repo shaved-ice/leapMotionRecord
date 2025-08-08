@@ -24,6 +24,7 @@ public class Deserialize : MonoBehaviour
     private Vector3 backwardPos; //position when hands/palms are facing towards you
     private bool forwardFacing = false; //I want to start the program with the palms facing towards us as in the initial specification
     private int fileNum = 0; //this is for other scripts to be able to detect if the current file read has changed e.g new file loaded or read
+    private bool validFile = true; //tells us if the current file is valid or not
     public int FrameNum
     {
         get { return frameNum; }
@@ -36,7 +37,7 @@ public class Deserialize : MonoBehaviour
     {
         handModelLeft = GameObject.Find("Left"); //finds the Game Object named "Left" - this way the suer doesn't have to manually place it into the script
         handModelRight = GameObject.Find("Right");
-        hands = new GameObject("Hands"); 
+        hands = new GameObject("Hands");
         handModelLeft.transform.SetParent(hands.transform, false);
         handModelRight.transform.SetParent(hands.transform, false); //this scoops up the two hand objects found and places them as children under a gameObject named hands.
         forwardPos = hands.transform.position; //save this position as the forward hand position for if we need to revert back to this direction
@@ -76,18 +77,48 @@ public class Deserialize : MonoBehaviour
                     serialized = (FrameJson)serializer.Deserialize(sr, typeof(FrameJson));
                 }
             }
-            maxSize = serialized.jsonList.Count;
+            ValidateFile();
+            if (validFile)
+            {
+                maxSize = serialized.jsonList.Count;
+            }
+            else
+            {
+                maxSize = 0;
+            }
         }
         fileNum++; //a new file has been read so increment the fileNum
     } //since the function name doesn't describe displaying the new file, I don't include it - this way it's more intuitive to use
 
+    private void ValidateFile()
+    {
+        validFile = true;
+        if (serialized == null)
+        {
+            validFile = false;
+        }
+        else
+        {
+            foreach (FrameBreakdown frame in serialized.jsonList)
+            {
+                if (frame.handList.Count != 2) //if we don't have exactly two hands in the frame then the file is invalid. 
+                {
+                    validFile = false;
+                }
+            }
+        }
+    }
+
     private void DisplayFrame()
     {
-        TransformHand(serialized.jsonList[frameNum].handList[0]);
-        TransformHand(serialized.jsonList[frameNum].handList[1]);
-        if (!forwardFacing) //only do this if we are facing backwards
+        if (validFile) //if the file is invalid, don't display it. Putting it here ensures an error is never thrown even if display were to be called by anny of the UI button functions etc. 
         {
-            hands.transform.Rotate(0f, 180f, 0f, Space.World); //this flips the rotation of the hands 180 degrees around the y axis AFTER the hands are displayed, ensuring nothing else changes 
+            TransformHand(serialized.jsonList[frameNum].handList[0]);
+            TransformHand(serialized.jsonList[frameNum].handList[1]);
+            if (!forwardFacing) //only do this if we are facing backwards
+            {
+                hands.transform.Rotate(0f, 180f, 0f, Space.World); //this flips the rotation of the hands 180 degrees around the y axis AFTER the hands are displayed, ensuring nothing else changes 
+            }
         }
     }
 
@@ -131,7 +162,7 @@ public class Deserialize : MonoBehaviour
         GameObject intermediate;
         if (!thumbStatus) //since all fingers apart from thumbs have the proximal phalange and it is the one we access first - we do this one first
         {
-            GameObject proximal = finger; 
+            GameObject proximal = finger;
             intermediate = proximal.transform.GetChild(0).gameObject;
             proximal.transform.position = f.proximal.prevJoint; //using prevJoint instead of centre. This is because the model I'm using seems to have points on the fingers between the joints instead of actual bone parts.
             spin(proximal, f.proximal.rotation);
@@ -167,7 +198,7 @@ public class Deserialize : MonoBehaviour
         {
             jsonList.Add(f);
         }
-    } 
+    }
 
     public class FrameBreakdown
     {
@@ -237,7 +268,7 @@ public class Deserialize : MonoBehaviour
         return frameIncrement;
     }
 
-    public int getMaxSize()     
+    public int getMaxSize()
     {
         return maxSize;
     }
