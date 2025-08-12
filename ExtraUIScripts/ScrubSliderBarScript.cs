@@ -7,7 +7,7 @@ using MixedReality.Toolkit.UX;
 public class ScrubSliderBarScript : MonoBehaviour
 {
     // Start is called before the first frame update
-    private Deserialize deserializer;
+    private Replay replay;
     public Slider scrubSlider;
     private float slidescript;
     private UnityEvent<SliderEventData> slideEvent;
@@ -17,24 +17,24 @@ public class ScrubSliderBarScript : MonoBehaviour
 
     void Start()
     {
-        deserializer = FindFirstObjectByType<Deserialize>();
+        replay = FindFirstObjectByType<Replay>();
         scrubSlider = FindFirstObjectByType<Slider>();
         InitialiseSlider();
-        fileNum = deserializer.GetFileNum();
+        fileNum = replay.GetFileNum();
     }
 
     // Update is called once per frame
     void Update()
     {
-        int newFileNum = deserializer.GetFileNum();
+        int newFileNum = replay.GetFileNum();
         if (fileNum != newFileNum)
         {
             fileNum = newFileNum; //new file read so we restart everything
             InitialiseSlider();
         }
-        if ((deserializer.FrameDiff((int)fNum)) && !selectBool) //if our frameNum is different from the one actually being replayed AND the user isn't currently selecting us then update the bar
+        if ((replay.FrameDiff((int)fNum)) && !selectBool) //if our frameNum is different from the one actually being replayed AND the user isn't currently selecting us then update the bar
         {
-            fNum = (float)(deserializer.FrameNum);
+            fNum = (float)(replay.FrameNum);
             scrubSlider.Value = fNum;
         }
 
@@ -42,7 +42,7 @@ public class ScrubSliderBarScript : MonoBehaviour
 
     public void InitialiseSlider()
     {
-        scrubSlider.MaxValue = (deserializer.GetMaxSize() - 1); //this way we don't have to waste time calculating the percentage space we need to put the slider in
+        scrubSlider.MaxValue = (replay.GetMaxSize() - 1); //this way we don't have to waste time calculating the percentage space we need to put the slider in
         scrubSlider.Value = 0f; //always restart the bar to 0
     }
 
@@ -52,7 +52,7 @@ public class ScrubSliderBarScript : MonoBehaviour
     }
     public void FunctionUnselectUpdate()
     {
-        deserializer.FrameNum = (int)scrubSlider.Value; //update deserializer with the new frame num
+        replay.FrameNum = (int)scrubSlider.Value; //update deserializer with the new frame num
         selectBool = false;
     }
 }
