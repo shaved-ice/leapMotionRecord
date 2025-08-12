@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(Deserialize))]
-public class DeserializeEditor : Editor
+[CustomEditor(typeof(Replay))]
+public class ReplayEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
-        Deserialize s = (Deserialize)target;    
+        Replay s = (Replay)target;    
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("First", GUILayout.Width(70)))
         {
@@ -41,4 +41,3 @@ public class DeserializeEditor : Editor
         }
         GUILayout.EndHorizontal();
     }
-}
