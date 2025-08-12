@@ -8,9 +8,7 @@ public class ScrubSliderBarScript : MonoBehaviour
 {
     // Start is called before the first frame update
     private Replay replay;
-    public Slider scrubSlider;
-    private float slidescript;
-    private UnityEvent<SliderEventData> slideEvent;
+    private Slider scrubSlider;
     private float fNum = 0f;
     private bool selectBool = false; //let's us know if we're currently being selected or not.
     private int fileNum;
