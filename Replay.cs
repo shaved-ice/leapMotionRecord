@@ -6,7 +6,7 @@ using System.Text;
 using System;
 using Newtonsoft.Json;
 
-public class Deserialize : MonoBehaviour
+public class Replay : MonoBehaviour
 {
 
     public string directoryPath; //the directory and file name where we read the recording file
