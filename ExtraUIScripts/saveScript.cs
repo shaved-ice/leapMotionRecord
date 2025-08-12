@@ -9,14 +9,14 @@ public class saveScript : MonoBehaviour
     public TMP_Text status; //alerts the user that something has happened
     private int currentFile = 1; //starting with the file in the middle for selection purposes
     private string saveFileName = "";
-    private Deserialize deserializer;
+    private Replay replay;
     private bool[] storedOrNot = new bool[3];
-    private Deserialize.FrameJson emptyFile = new Deserialize.FrameJson();
-    private Deserialize.FrameJson[] storage = new Deserialize.FrameJson[3]; //this is my display array - they will be displayed in unity in clockwise order from the middle - starting from whoever's index is the currentFile.
+    private Replay.FrameJson emptyFile = new Replay.FrameJson();
+    private Replay.FrameJson[] storage = new Replay.FrameJson[3]; //this is my display array - they will be displayed in unity in clockwise order from the middle - starting from whoever's index is the currentFile.
 
     void Start()
     {
-        deserializer = FindFirstObjectByType<Deserialize>(); //initialise deserialize script connection
+        replay = FindFirstObjectByType<Replay>(); //initialise deserialize script connection
         for (int i = 0; i < 3; i++) //initialise the storedOrNot array
         {
             storedOrNot[i] = false;
@@ -30,7 +30,7 @@ public class saveScript : MonoBehaviour
 
     public void SaveAFile()
     {
-        storage[currentFile] = deserializer.GetFile(); //save the file into our storage at the current index
+        storage[currentFile] = replay.GetFile(); //save the file into our storage at the current index
         if (saveFileName == "") //change the text of the fileHolder to reflect the name of our newly saved file
         {
             fileHolder[1].text = currentFile.ToString(); //if there's no file name given, just save the number as the name
@@ -47,7 +47,7 @@ public class saveScript : MonoBehaviour
     {
         if (storedOrNot[currentFile])
         {
-            deserializer.SetFile(storage[currentFile]); //call the deserializer load file function to load the file
+            replay.SetFile(storage[currentFile]); //call the deserializer load file function to load the file
             status.text = "file loaded!";
         }
         else
