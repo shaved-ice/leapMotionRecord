@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class saveScript : MonoBehaviour
+public class SaveScript : MonoBehaviour
 {
     public TMP_Text[] fileHolder = new TMP_Text[3]; //unfortunately this allows the user to change the size of the array. I only account for the first 3 and this code will likely break if there are less than 2
     public TMP_Text status; //alerts the user that something has happened
