@@ -9,16 +9,16 @@ public class IncrementScript : MonoBehaviour
     private int increment = 0;
     public TMP_Text incrementText;
     public TMP_Text incrementError;
-    private Deserialize deserializer;
+    private Replay replay;
     // Start is called before the first frame update
 
     void Start()
     {
-        deserializer = FindFirstObjectByType<Deserialize>();
+        replay = FindFirstObjectByType<Replay>();
     }
     void Update()
     {
-        int newIncrement = deserializer.GetFrameIncrement();
+        int newIncrement = replay.GetFrameIncrement();
         if (increment != newIncrement)
         {
             increment = newIncrement;
@@ -34,7 +34,7 @@ public class IncrementScript : MonoBehaviour
             int x = Int32.Parse(i);
             increment = x;
             DisplayIncrement();
-            deserializer.SetFrameIncrement(increment);
+            replay.SetFrameIncrement(increment);
         }
         catch
         {
