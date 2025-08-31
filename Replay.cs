@@ -24,7 +24,7 @@ public class Replay : MonoBehaviour
     private Vector3 backwardPos; //position when hands/palms are facing towards you
     private bool forwardFacing = false; //I want to start the program with the palms facing towards us as in the initial specification
     private int fileNum = 0; //this is for other scripts to be able to detect if the current file read has changed e.g new file loaded or read
-    private bool validFile = true; //tells us if the current file is valid or not
+    private bool validFile = false; //tells us if the current file is valid or not
     public int FrameNum
     {
         get { return frameNum; }
