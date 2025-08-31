@@ -39,9 +39,9 @@ File Name: The name of the file you want to create or overwrite (do not include 
 
 Frame Increment: the number of frames you would want a skip button to skip forward or backwards (only relevant if you plan to implement such a UI) 
 
-#### Extra things to do
+## Extra UI
 There are a number of functions that can be used to interact with the Replay script.\
-If you wish to, you can create buttons in the scene and make them call these interaction buttons when pressed.\
+If you wish to, you can create buttons in the scene and make them call these interaction buttons when pressed.
 
 Buttons that can be used with no extra processing: 
 - PausePlay  &nbsp; &nbsp; &nbsp; (pauses or plays the replay)
@@ -106,6 +106,23 @@ If you intend to have more than one Slider object in the scene, please change th
 Increment Text: a Text (TMP) object that tells the user what the current increment value is
 
 increment Error: a Text (TMP) object that tells the user if any error has occired (mainly invalid input) 
+## Example Unity Projects
+Two Unity Projects have been provided as examples for you to see how the provided scripts and UI functions might be used.
+- The ExampleRecordingProject is intended to be used with a Leap Motion Controller.
+- The ExampleReplayerProject uses the Unity MRTK2 packages (install guide can be found [here](https://learn.microsoft.com/en-us/training/modules/learn-mrtk-tutorials/1-5-exercise-configure-resources)) for the UI.
+
+For both scripts, please download the zip file, unzip and upload to your Unity Hub.\
+Look in the Project window, click on the Assets folder, click on the Scenes folder and double click the scene found in there to open it up in the scene view.
+
+Note: for the ExampleReplayerProject, the Simple Hands asset has been removed due to the licensing. To fix this please:
+1. Go to the Window tab at the top of your Unity Project and open the Package Manager (please obtain the Simple Hands assets from the Asset Store [here](https://assetstore.unity.com/packages/3d/characters/stylized-simple-hands-221297) if you have not already done so.), you should find the Stylized - Simple Hands   package in the My Assets category. Download and Import the Simple Hands assets.
+2. Go to the Project Window, go into the assets folder and into the SimpleHands folder within that. Drag any hand from the Prefabs folder into your scene.
+3. (Optional) To colour your hand: in your Hierarchy window, click the ">" symbol to the right of the hand you just created. From the SimpleHands folder go into the Texture folder and go into the "B-Hand" or "W-Hand" folder. Drag the "B-Base" or "W-Base" png onto the hand in your scene. In the top-right of the Hierarchy window, click the back arrow button below the "+" button to return to your usual scene.
+4. Right click the hand you made in the Hierarchy window and rename it "Left" (Keep in mind the capitalisation and please do not include the quotation marks).
+5. Right click the hand in the Hierarchy window again and duplicate your hand. Please rename this new hand "Right".
+6. Please change the Scale of the hands. For the Left Hand change the scale to: (X: -0.14455 Y: 0.14455 Z: -0.14455). For the Right Hand change the scale to: (X: 0.14455 Y: 0.14455 Z: -0.14455)
+7. Please select the ScriptHolder object in the Hierarchy window. Please fill in the details requested in the Inspector window. (This program will only read recording files made by the Recording Script. An example Hand Recording has been provided in the ExampleUnityProjects folder.) 
+
 
 
 
