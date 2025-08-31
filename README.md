@@ -121,7 +121,7 @@ Note: for the ExampleReplayerProject, the Simple Hands asset has been removed du
 4. Right click the hand you made in the Hierarchy window and rename it "Left" (Keep in mind the capitalisation and please do not include the quotation marks).
 5. Right click the hand in the Hierarchy window again and duplicate your hand. Please rename this new hand "Right".
 6. Please change the Scale of the hands. For the Left Hand change the scale to: (X: -0.14455 Y: 0.14455 Z: -0.14455). For the Right Hand change the scale to: (X: 0.14455 Y: 0.14455 Z: -0.14455)
-7. Please select the ScriptHolder object in the Hierarchy window. Please fill in the details requested in the Inspector window. (This program will only read recording files made by the Recording Script. An example Hand Recording has been provided in the ExampleUnityProjects folder.) 
+7. Please select the ScriptHolder object in the Hierarchy window. Please fill in the details requested in the Inspector window. (This program will only read recording files made by the Recording Script. Two example Recordings have been provided in the ExampleUnityProjects folder.) 
 
 
 
